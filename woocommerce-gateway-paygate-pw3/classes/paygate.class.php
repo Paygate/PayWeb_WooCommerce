@@ -375,7 +375,25 @@ HTML;
 
         $messageText = esc_js( __( 'Thank you for your order. We are now redirecting you to PayGate to make payment.', 'paygate' ) );
 
-        $blockUi = <<<JS
+        unset( $parsed_response['CHECKSUM'] );
+        $checksum = md5( implode( '', $parsed_response ) . $this->encryption_key );
+
+        $heading    = __( 'Thank you for your order, please click the button below to pay via PayGate.', 'paygate' );
+        $buttonText = __( $this->order_button_text, 'paygate' );
+        $cancelUrl  = esc_url( $order->get_cancel_order_url() );
+        $cancelText = __( 'Cancel order &amp; restore cart', 'paygate' );
+
+        $form = <<<HTML
+<p>{$heading}</p>
+<form action="{$this->process_url}" method="post" id="paygate_payment_form">
+    <input name="PAY_REQUEST_ID" type="hidden" value="{$parsed_response['PAY_REQUEST_ID']}" />
+    <input name="CHECKSUM" type="hidden" value="{$checksum}" />
+    <!-- Button Fallback -->
+    <div class="payment_buttons">
+        <input type="submit" class="button alt" id="submit_paygate_payment_form" value="{$buttonText}" /> <a class="button cancel" href="{$cancelUrl}">{$cancelText}</a>
+    </div>
+</form>
+<script>
 $(document).ready(function(){
     $.blockUI({
         message: "{$messageText}",
@@ -398,28 +416,9 @@ $(document).ready(function(){
     });
 
     jQuery("#submit_paygate_payment_form").click();
+    jQuery("#submit_paygate_payment_form").attr("disabled", true);
 });
-JS;
-        wc_enqueue_js( $blockUi );
-
-        unset( $parsed_response['CHECKSUM'] );
-        $checksum = md5( implode( '', $parsed_response ) . $this->encryption_key );
-
-        $heading    = __( 'Thank you for your order, please click the button below to pay via PayGate.', 'paygate' );
-        $buttonText = __( $this->order_button_text, 'paygate' );
-        $cancelUrl  = esc_url( $order->get_cancel_order_url() );
-        $cancelText = __( 'Cancel order &amp; restore cart', 'paygate' );
-
-        $form = <<<HTML
-<p>{$heading}</p>
-<form action="{$this->process_url}" method="post" id="paygate_payment_form">
-    <input name="PAY_REQUEST_ID" type="hidden" value="{$parsed_response['PAY_REQUEST_ID']}" />
-    <input name="CHECKSUM" type="hidden" value="{$checksum}" />
-    <!-- Button Fallback -->
-    <div class="payment_buttons">
-        <input type="submit" class="button alt" id="submit_paygate_payment_form" value="{$buttonText}" /> <a class="button cancel" href="{$cancelUrl}">{$cancelText}</a>
-    </div>
-</form>
+</script>
 HTML;
 
         return $form;
@@ -661,7 +660,7 @@ HTML;
                     } else {
                         // Check if IPN disabled and use redirect instead
                         if ( $this->settings['disablenotify'] == 'yes' ) {
-                            $order->add_order_note( 'Response via Redirect, Security Error: Checksum mismatch. Illegal access detected' . '<br/>' );
+                            $order->add_order_note( 'Response via Redirect, Transaction declined.' . '<br/>' );
                             if ( !$order->has_status( 'failed' ) ) {
                                 $order->update_status( 'failed' );
                             }
@@ -736,7 +735,7 @@ HTML;
                     $checkSumParams = md5( $checkSumParams );
                     if ( $checkSumParams != $paygate_data['CHECKSUM'] ) {
                         $errors     = true;
-                        $error_desc = 'Security Error: Checksum mismatch. Illegal access detected';
+                        $error_desc = 'Transaction declined.';
                     }
                 }
 

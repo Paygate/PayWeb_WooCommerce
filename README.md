@@ -1,11 +1,11 @@
 # PayWeb_WooCommerce
-## PayGate WooCommerce plugin v1.1.4 for WooCommerce v3.4.3
+## PayGate WooCommerce plugin v1.1.5 for WooCommerce v3.4.3
 
 This is the DPO PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact the DPO PayGate support team at support@paygate.co.za should you require any assistance.
 
 ## Installation
 
-Please navigate to the [releases page](https://github.com/PayGate/PayWeb_WooCommerce/releases), download the latest release (v1.1.4) and unzip. You will them be able to follow the integration guide PDF which is included in the zip.
+Please navigate to the [releases page](https://github.com/PayGate/PayWeb_WooCommerce/releases), download the latest release (v1.1.5) and unzip. You will them be able to follow the integration guide PDF which is included in the zip.
 
 ## Collaboration
 
