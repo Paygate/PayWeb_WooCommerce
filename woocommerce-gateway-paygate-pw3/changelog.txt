@@ -2,6 +2,7 @@
 =====================================
 Date	  : Version: Description
 =====================================
+2018-10-13: v1.1.5 : Apply alternative approach to JS click event
 2018-08-07: v1.1.4 : Backwards compatibility with older plugin settings2018-05-16: v1.1.3 : Reversion and rebrand. Add options to toggle redirect OR notify2018-05-16: v3.3.8 : Fix double stock reduction on SiD notify
 2018-04-19: v3.3.7 : Fix WP debug.log entry when NOTIFY method accessed directly
 2018-04-16: v3.3.6 : Fix notify url broken on some url rewrites to HTTPS
