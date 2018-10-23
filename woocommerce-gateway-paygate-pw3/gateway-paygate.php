@@ -26,6 +26,10 @@ add_action( 'plugins_loaded', 'woocommerce_paygate_init', 0 );
  * @since 1.0.0
  */
 
+if ( !defined( 'PAYGATE_PLUGIN_URL' ) ) {
+    define( 'PAYGATE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+}
+
 function woocommerce_paygate_init()
 {
 
@@ -48,7 +52,7 @@ function woocommerce_paygate_init()
 function woocommerce_add_paygate_gateway( $methods )
 {
 
-    $methods[] = 'WC_Gateway_PayGate';
+    $methods[] = WC_Gateway_PayGate::instance();
 
     return $methods;
 
