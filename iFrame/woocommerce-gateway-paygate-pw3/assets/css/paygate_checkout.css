@@ -4,7 +4,7 @@
     display: block;
     /* Shows the popup */
     position: fixed;
-    z-index: 10;
+    z-index: 10000;
     left: 0;
     top: 0;
     width: 100%;
@@ -30,6 +30,7 @@
     /* Popup width */
     height: 90%;
     /* Popup height: */
+    overflow: auto;
 }
 #payPopupFrame {
     margin: 0px;

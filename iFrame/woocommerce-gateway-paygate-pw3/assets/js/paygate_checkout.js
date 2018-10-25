@@ -30,7 +30,7 @@ jQuery(document).on('submit', 'form#order_review', function(e) {
         'dataType': 'json',
         'data': {
             'action': 'order_pay_payment',
-            'order_id': 73
+            'order_id': paygate_checkout_js.order_id
         },
         'async': false
     }).complete(function(result) {

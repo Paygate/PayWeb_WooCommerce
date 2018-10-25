@@ -69,14 +69,25 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->init_settings();
 
         // Define user set variables
-        $this->paygate_id        = $this->settings['paygate_id'];
-        $this->secret_key        = $this->settings['secret_key'];
-        $this->title             = $this->settings['title'];
-        $this->order_button_text = $this->settings['button_text'];
-        $this->description       = $this->settings['description'];
+        if ( isset( $this->settings['paygate_id'] ) ) {
+            $this->paygate_id = $this->settings['paygate_id'];
+        }
+        if ( isset( $this->settings['secret_key'] ) ) {
+            $this->secret_key = $this->settings['secret_key'];
+        }
+        if ( isset( $this->settings['title'] ) ) {
+            $this->title = $this->settings['title'];
+        }
+        if ( isset( $this->settings['button_text'] ) ) {
+            $this->order_button_text = $this->settings['button_text'];
+        }
+
+        if ( isset( $this->settings['description'] ) ) {
+            $this->description = $this->settings['description'];
+        }
 
         // Setup the test data, if in test mode.
-        if ( $this->settings['testmode'] == 'yes' ) {
+        if ( isset( $this->settings['testmode'] ) && $this->settings['testmode'] == 'yes' ) {
             $this->add_testmode_admin_settings_notice();
         }
 
@@ -350,6 +361,21 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         die();
     }
 
+    public function get_order_id_order_pay()
+    {
+        global $wp;
+
+        // Get the order ID
+        $order_id = absint( $wp->query_vars['order-pay'] );
+
+        if ( empty( $order_id ) || $order_id == 0 ) {
+            return;
+        }
+        // Exit;
+        // Testing output (always use return with a shortcode)
+        return $order_id;
+    }
+
     /**
      * Add payment scripts for iFrame support
      *
@@ -358,6 +384,17 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     public function paygate_payment_scripts()
     {
         wp_enqueue_script( 'paygate-checkout-js', PAYGATE_PLUGIN_URL . 'assets/js/paygate_checkout.js', array(), WC_VERSION, true );
+        if ( is_wc_endpoint_url( 'order-pay' ) ) {
+            wp_localize_script( 'paygate-checkout-js', 'paygate_checkout_js', array(
+                'order_id' => $this->get_order_id_order_pay(),
+            ) );
+
+        } else {
+            wp_localize_script( 'paygate-checkout-js', 'paygate_checkout_js', array(
+                'order_id' => 0,
+            ) );
+        }
+
         wp_enqueue_style( 'paygate-checkout-css', PAYGATE_PLUGIN_URL . 'assets/css/paygate_checkout.css', array(), WC_VERSION );
     }
 
