@@ -4,6 +4,7 @@
 This is the DPO PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact the DPO PayGate support team at support@paygate.co.za should you require any assistance.
 
 ## Installation
+[![How To Setup DPO | PayGate PayWeb for WooCommerce](https://www.appinlet.com/wp-content/uploads/2018/09/WooCommerce-Integration.jpg)](https://www.youtube.com/watch?v=MMcEG7FmoEM "How To Setup DPO | PayGate PayWeb for WooCommerce")
 
 Please navigate to the [releases page](https://github.com/PayGate/PayWeb_WooCommerce/releases), download the latest release (v1.1.5) and unzip. You will them be able to follow the integration guide PDF which is included in the zip.
 
