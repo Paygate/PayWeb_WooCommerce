@@ -394,8 +394,8 @@ HTML;
     </div>
 </form>
 <script>
-$(document).ready(function(){
-    $.blockUI({
+jQuery(document).ready(function(){
+    jQuery.blockUI({
         message: "{$messageText}",
         baseZ: 99999,
         overlayCSS:
