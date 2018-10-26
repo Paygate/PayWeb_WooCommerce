@@ -37,7 +37,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     private $query_url = 'https://secure.paygate.co.za/payweb3/query.trans';
 
     private $paygate_id;
-    private $secret_key;
+    private $encryption_key;
 
     private $initiate_response;
     private $notify_url;
@@ -72,8 +72,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         if ( isset( $this->settings['paygate_id'] ) ) {
             $this->paygate_id = $this->settings['paygate_id'];
         }
-        if ( isset( $this->settings['secret_key'] ) ) {
-            $this->secret_key = $this->settings['secret_key'];
+        if ( isset( $this->settings['encryption_key'] ) ) {
+            $this->encryption_key = $this->settings['encryption_key'];
         }
         if ( isset( $this->settings['title'] ) ) {
             $this->title = $this->settings['title'];
@@ -139,11 +139,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             if ( $this->settings['testmode'] == 'yes' ) {
 
                 $this->paygate_id = self::TEST_PAYGATE_ID;
-                $this->secret_key = self::TEST_SECRET_KEY;
+                $this->encryption_key = self::TEST_SECRET_KEY;
 
             }
 
-            $checksum_source = $this->paygate_id . $pay_request_id . $status . $order->get_order_number() . $this->secret_key;
+            $checksum_source = $this->paygate_id . $pay_request_id . $status . $order->get_order_number() . $this->encryption_key;
 
             $test_checksum = md5( $checksum_source );
 
@@ -157,7 +157,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                         'REFERENCE'      => $order->get_order_number(),
                     );
 
-                    $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->secret_key );
+                    $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->encryption_key );
 
                     $response = wp_remote_post( $this->query_url, array(
                         'method'      => 'POST',
@@ -272,7 +272,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 $checkSumParams = '';
 
                 if ( $this->settings['testmode'] == 'yes' ) {
-                    $this->secret_key = 'secret';
+                    $this->encryption_key = 'secret';
                 }
 
                 if ( !$errors ) {
@@ -291,7 +291,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                         }
                     }
 
-                    $checkSumParams .= $this->secret_key;
+                    $checkSumParams .= $this->encryption_key;
                 }
 
                 // Verify security signature
@@ -399,14 +399,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     }
 
     /**
-     * Add a notice to the secret_key and paygate_id fields when in test mode.
+     * Add a notice to the encryption_key and paygate_id fields when in test mode.
      *
      * @since 1.0.0
      */
     public function add_testmode_admin_settings_notice()
     {
         $this->form_fields['paygate_id']['description'] .= ' <br><br><strong>' . __( 'PayGate ID currently in use.', 'paygate' ) . ' ( 10011072130 )</strong>';
-        $this->form_fields['secret_key']['description'] .= ' <br><br><strong>' . __( 'PayGate Secret Key currently in use.', 'paygate' ) . ' ( secret )</strong>';
+        $this->form_fields['encryption_key']['description'] .= ' <br><br><strong>' . __( 'PayGate Secret Key currently in use.', 'paygate' ) . ' ( secret )</strong>';
     }
 
     /**
@@ -447,7 +447,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 'desc_tip'    => true,
                 'default'     => 'no',
             ),
-            'secret_key'    => array(
+            'encryption_key'    => array(
                 'title'       => __( 'Secret Key', 'paygate' ),
                 'type'        => 'text',
                 'description' => __( 'This is the Secret Key set in the PayGate Back Office.', 'paygate' ),
@@ -595,7 +595,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if ( $this->settings['testmode'] == 'yes' ) {
             $this->paygate_id = self::TEST_PAYGATE_ID;
-            $this->secret_key = self::TEST_SECRET_KEY;
+            $this->encryption_key = self::TEST_SECRET_KEY;
         }
 
         // Construct variables for post
@@ -615,7 +615,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             'USER3'            => 'woocommerce-v' . $this->version,
         );
 
-        $this->data_to_send['CHECKSUM'] = md5( implode( '', $this->data_to_send ) . $this->secret_key );
+        $this->data_to_send['CHECKSUM'] = md5( implode( '', $this->data_to_send ) . $this->encryption_key );
 
         $response = $this->curlPost( 'https://secure.paygate.co.za/payweb3/initiate.trans', $this->data_to_send );
 
