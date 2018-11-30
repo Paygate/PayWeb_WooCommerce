@@ -160,6 +160,9 @@ class WP_GitHub_Updater {
 		if ( ! isset( $this->config['description'] ) )
 			$this->config['description'] = $this->get_description();
 
+		if ( ! isset( $this->config['changelog'] ) )
+			$this->config['changelog'] = $this->get_changelog();
+
 		$plugin_data = $this->get_plugin_data();
 		if ( ! isset( $this->config['plugin_name'] ) )
 			$this->config['plugin_name'] = $plugin_data['Name'];
@@ -332,6 +335,19 @@ class WP_GitHub_Updater {
 		return ( !empty( $_description->description ) ) ? $_description->description : false;
 	}
 
+	/**
+	 * Get plugin changelog
+	 *
+	 * @since 1.0
+	 * @return string $_changelog the changelog
+	 */
+	public function get_changelog() {
+		$_changelog = $this->remote_get($this->config['raw_url'].'/changelog.txt');
+		$_changelog = nl2br($_changelog['body']);
+		// return 
+		return ( !empty( $_changelog ) ? $_changelog : 'Could not get changelog from server.');
+	}
+
 
 	/**
 	 * Get Plugin data
@@ -391,22 +407,26 @@ class WP_GitHub_Updater {
 	public function get_plugin_info( $false, $action, $response ) {
 
 		// Check if this call API is for the right plugin
-		if ( !isset( $response->slug ) || $response->slug != $this->config['slug'] )
+		if ( !isset( $response->slug ) || $response->slug != $this->config['proper_folder_name'] )
 			return false;
 
-		$response->slug = $this->config['slug'];
-		$response->plugin_name  = $this->config['plugin_name'];
-		$response->version = $this->config['new_version'];
-		$response->author = $this->config['author'];
-		$response->homepage = $this->config['homepage'];
-		$response->requires = $this->config['requires'];
-		$response->tested = $this->config['tested'];
-		$response->downloaded   = 0;
-		$response->last_updated = $this->config['last_updated'];
-		$response->sections = array( 'description' => $this->config['description'] );
-		$response->download_link = $this->config['zip_url'];
+		$res = new stdClass();
+		$res->name = $this->config['plugin_name'];
+		$res->slug = $this->config['slug'];
+		$res->version = $this->config['new_version'];
+		$res->author = $this->config['author'];
+		$res->homepage = $this->config['homepage'];
+		$res->requires = $this->config['requires'];
+		$res->tested = $this->config['tested'];
+		$res->downloaded   = 0;
+		$res->last_updated = $this->config['last_updated'];
+		$res->sections = array( 
+			'description' => $this->config['description'],
+			'changelog' => $this->config['changelog'], 
+		);
+		$res->download_link = $this->config['zip_url'];
 
-		return $response;
+		return $res;
 	}
 
 

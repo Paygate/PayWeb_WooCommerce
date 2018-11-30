@@ -1,5 +1,3 @@
-== Changelog ==
-
 = 1.1.7 - Novermber 30, 2018 =
 
 * Add auto-update feature
