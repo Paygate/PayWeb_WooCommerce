@@ -4,7 +4,7 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce (Redirect)
  * Plugin URI: https://www.paygate.co.za
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
  * Developer: App Inlet (Pty) Ltd
@@ -45,7 +45,7 @@ function woocommerce_paygate_init()
 
         $config = array(
             'slug' => plugin_basename( __FILE__ ),
-            'proper_folder_name' => 'github-updater',
+            'proper_folder_name' => 'woocommerce-gateway-paygate-pw3',
             'api_url' => 'https://api.github.com/repos/RBAtkins0n/PayWeb_WooCommerce',
             'raw_url' => 'https://raw.github.com/RBAtkins0n/PayWeb_WooCommerce/master',
             'github_url' => 'https://github.com/RBAtkins0n/PayWeb_WooCommerce',
