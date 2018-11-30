@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Plugin Name: PayGate PayWeb3 plugin for WooCommerce (Redirect)
+ * Plugin Name: PayGate PayWeb3 plugin for WooCommerce (iFrame)
  * Plugin URI: https://github.com/PayGate/PayWeb_WooCommerce
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
  * Version: 1.1.7
@@ -26,6 +26,10 @@ add_action( 'plugins_loaded', 'woocommerce_paygate_init', 0 );
  * @since 1.0.0
  */
 
+if ( !defined( 'PAYGATE_PLUGIN_URL' ) ) {
+    define( 'PAYGATE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+}
+
 function woocommerce_paygate_init()
 {
 
@@ -45,9 +49,9 @@ function woocommerce_paygate_init()
             'slug' => plugin_basename( __FILE__ ),
             'proper_folder_name' => 'woocommerce-gateway-paygate-pw3',
             'api_url' => 'https://api.github.com/repos/PayGate/PayWeb_WooCommerce',
-            'raw_url' => 'https://raw.github.com/PayGate/PayWeb_WooCommerce/master',
+            'raw_url' => 'https://raw.github.com/PayGate/PayWeb_WooCommerce/iframe',
             'github_url' => 'https://github.com/PayGate/PayWeb_WooCommerce',
-            'zip_url' => 'https://github.com/PayGate/PayWeb_WooCommerce/archive/master.zip',
+            'zip_url' => 'https://github.com/PayGate/PayWeb_WooCommerce/archive/iframe.zip',
             'homepage' => 'https://github.com/PayGate/PayWeb_WooCommerce',
             'sslverify' => true,
             'requires' => '4.0',
@@ -71,7 +75,7 @@ function woocommerce_paygate_init()
 function woocommerce_add_paygate_gateway( $methods )
 {
 
-    $methods[] = 'WC_Gateway_PayGate';
+    $methods[] = WC_Gateway_PayGate::instance();
 
     return $methods;
 
