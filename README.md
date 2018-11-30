@@ -1,5 +1,5 @@
 # PayWeb_WooCommerce
-## PayGate WooCommerce Redirect plugin v1.1.7 for WooCommerce v3.5.0
+## PayGate WooCommerce plugin v1.1.7 for WooCommerce v3.5.0
 
 This is the DPO PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact the DPO PayGate support team at support@paygate.co.za should you require any assistance.
 
