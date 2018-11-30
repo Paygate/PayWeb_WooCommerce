@@ -44,7 +44,8 @@ function woocommerce_paygate_init()
     if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
 
         $config = array(
-            'slug' => plugin_basename( __FILE__ ),
+            'slug' => 'woocommerce-gateway-paygate-pw3',
+            'plugin_name' => 'PayGate PayWeb3 plugin for WooCommerce (Redirect)',
             'proper_folder_name' => 'woocommerce-gateway-paygate-pw3',
             'api_url' => 'https://api.github.com/repos/RBAtkins0n/PayWeb_WooCommerce',
             'raw_url' => 'https://raw.github.com/RBAtkins0n/PayWeb_WooCommerce/master',
