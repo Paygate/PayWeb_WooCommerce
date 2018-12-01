@@ -1,6 +1,7 @@
 = 1.1.7 - Novermber 30, 2018 =
 
 * Add auto-update feature
+* Add check for terms and conditions on "pay_for_order" page
 
 = 1.1.6 - October 24, 2018 =
 
