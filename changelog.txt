@@ -1,6 +1,13 @@
-= 1.1.7 - Novermber 30, 2018 =
+= 1.1.8 - December 6, 2018 =
+
+* Cater for abandoned carts and allow users to 'edit' cart on failed payment.
+* Make cancelled transactions have an order status of 'cancelled'
+* Use add_notice() for store notices
+
+= 1.1.7 - November 30, 2018 =
 
 * Add auto-update feature
+* Add check for terms and conditions on "pay_for_order" page
 
 = 1.1.6 - October 24, 2018 =
 
