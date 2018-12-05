@@ -207,8 +207,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                                     $order->update_status( 'pending' );
                                 }
 
-                                $this->declined_msg( 'Your purchase is either pending or an error has occurred. Please follow up with the whomever necessary.' );
-
+                                $this->add_notice( 'Your purchase is either pending or an error has occurred. Please follow up with the whomever necessary.', 'error' );
                                 break;
                         }
                     }
@@ -226,12 +225,12 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
             $order = new WC_Order( $order_id );
 
-            echo '<script>window.top.location.href="' . $this->get_return_url( $order ) . '";</script>';
+            $redirect_link = $status == 1 ? $this->get_return_url( $order ) : htmlspecialchars_decode( urldecode( $order->get_cancel_order_url() ) );
+
+            echo '<script>window.top.location.href="' .  $redirect_link . '";</script>';
 
         } else {
-
             echo '<script>window.top.location.href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '";</script>';
-
         }
         exit;
     }
@@ -496,6 +495,24 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 }
 
     /**
+     * Add WooCommerce notice
+     *
+     * @since 1.0.0
+     *
+     */
+    public function add_notice( $message, $notice_type = 'success' )
+    {
+        // If function should we use?
+        if ( function_exists( "wc_add_notice" ) ) {
+            // Use the new version of the add_error method
+            wc_add_notice( $message, $notice_type );
+        } else {
+            // Use the old version
+            $woocommerce->add_error( $message );
+        }
+    }
+
+    /**
      * Check store currency eligible for paygate.
      *
      * @since 1.0.0
@@ -508,17 +525,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if ( $currency != 'ZAR' ) {
 
-            $message = 'Store currency must be South Africa';
-            // If function should we use?
-            if ( function_exists( "wc_add_notice" ) ) {
-                // Use the new version of the add_error method
-                wc_add_notice( $message );
-
-            } else {
-                // Use the old version
-                $woocommerce->add_error( $message );
-
-            }
+            $this->add_notice('Store currency must be South Africa', 'error');
             return false;
 
         } else {
