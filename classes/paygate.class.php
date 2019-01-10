@@ -142,8 +142,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 $this->encryption_key = self::TEST_SECRET_KEY;
 
             }
-
-            $checksum_source = $this->paygate_id . $pay_request_id . $status . $order->get_order_number() . $this->encryption_key;
+            $reference = $order->get_id() . '-' . $order->get_order_number();
+            $checksum_source = $this->paygate_id . $pay_request_id . $status . $reference . $this->encryption_key;
 
             $test_checksum = md5( $checksum_source );
 
