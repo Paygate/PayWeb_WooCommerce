@@ -1,3 +1,9 @@
+= 1.1.9 - January 10, 2019 =
+
+* Wordpress 5 compatibility
+* Add support for sequential order number plugins (get_order_number and get_id)
+* Add support for plugin update icons and 'Tested Version'
+
 = 1.1.8 - December 6, 2018 =
 
 * Cater for abandoned carts and allow users to 'edit' cart on failed payment.
