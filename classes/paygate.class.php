@@ -513,30 +513,6 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         }
     }
 
-    /**
-     * Check store currency eligible for paygate.
-     *
-     * @since 1.0.0
-     *
-     */
-    public function check_currency()
-    {
-
-        $currency = get_woocommerce_currency();
-
-        if ( $currency != 'ZAR' ) {
-
-            $this->add_notice( 'Store currency must be South Africa', 'error' );
-            return false;
-
-        } else {
-
-            return true;
-
-        }
-
-    }
-
     public function process_review_payment()
     {
         if ( !empty( $_POST['order_id'] ) ) {
@@ -558,30 +534,20 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if ( !empty( $order_id ) ) {
 
-            $check = $this->check_currency();
+            $result = $this->initiate_transaction( $order_id );
 
-            if ( $check ) {
+            $return_data = array(
+                'PAY_REQUEST_ID'   => $result['PAY_REQUEST_ID'],
+                'CHECKSUM'         => $result['CHECKSUM'],
+                'result'           => 'failure',
+                'reload'           => false,
+                'refresh'          => true,
+                'paygate_override' => true,
+                'message'          => false,
+            );
 
-                $result = $this->initiate_transaction( $order_id );
-
-                $return_data = array(
-                    'PAY_REQUEST_ID'   => $result['PAY_REQUEST_ID'],
-                    'CHECKSUM'         => $result['CHECKSUM'],
-                    'result'           => 'failure',
-                    'reload'           => false,
-                    'refresh'          => true,
-                    'paygate_override' => true,
-                    'message'          => false,
-                );
-
-                echo json_encode( $return_data );
-                die;
-
-            } else {
-
-                return;
-
-            }
+            echo json_encode( $return_data );
+            die;
 
         }
 
