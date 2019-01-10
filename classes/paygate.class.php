@@ -138,7 +138,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
             if ( $this->settings['testmode'] == 'yes' ) {
 
-                $this->paygate_id = self::TEST_PAYGATE_ID;
+                $this->paygate_id     = self::TEST_PAYGATE_ID;
                 $this->encryption_key = self::TEST_SECRET_KEY;
 
             }
@@ -154,7 +154,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                     $fields = array(
                         'PAYGATE_ID'     => $this->paygate_id,
                         'PAY_REQUEST_ID' => $_POST['PAY_REQUEST_ID'],
-                        'REFERENCE'      => $order->get_order_number(),
+                        'REFERENCE'      => $order->get_id() . '-' . $order->get_order_number(),
                     );
 
                     $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->encryption_key );
@@ -227,7 +227,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
             $redirect_link = $status == 1 ? $this->get_return_url( $order ) : htmlspecialchars_decode( urldecode( $order->get_cancel_order_url() ) );
 
-            echo '<script>window.top.location.href="' .  $redirect_link . '";</script>';
+            echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
 
         } else {
             echo '<script>window.top.location.href="' . get_permalink( wc_get_page_id( 'myaccount' ) ) . '";</script>';
@@ -303,7 +303,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 }
 
                 if ( isset( $paygate_data['REFERENCE'] ) ) {
-                    $order_id = $paygate_data['REFERENCE'];
+                    $order_id = explode( "-", $paygate_data['REFERENCE'] );
+                    $order_id = $order_id[0];
                 } else {
                     $order_id = '';
                 }
@@ -417,7 +418,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     {
 
         $this->form_fields = array(
-            'enabled'       => array(
+            'enabled'        => array(
                 'title'       => __( 'Enable/Disable', 'paygate' ),
                 'label'       => __( 'Enable PayGate Payment Gateway', 'paygate' ),
                 'type'        => 'checkbox',
@@ -425,48 +426,48 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 'desc_tip'    => true,
                 'default'     => 'no',
             ),
-            'title'         => array(
+            'title'          => array(
                 'title'       => __( 'Title', 'paygate' ),
                 'type'        => 'text',
                 'description' => __( 'This controls the title which the user sees during checkout.', 'paygate' ),
                 'desc_tip'    => false,
                 'default'     => __( 'PayGate Payment Gateway', 'paygate' ),
             ),
-            'paygate_id'    => array(
+            'paygate_id'     => array(
                 'title'       => __( 'PayGate ID', 'paygate' ),
                 'type'        => 'text',
                 'description' => __( 'This is the PayGate ID, received from PayGate.', 'paygate' ),
                 'desc_tip'    => true,
                 'default'     => '',
             ),
-            'disablenotify' => array(
+            'disablenotify'  => array(
                 'title'       => __( 'Disable IPN', 'paygate' ),
                 'type'        => 'checkbox',
                 'description' => __( 'Disable IPN notify method and use redirect method instead.', 'paygate' ),
                 'desc_tip'    => true,
                 'default'     => 'no',
             ),
-            'encryption_key'    => array(
+            'encryption_key' => array(
                 'title'       => __( 'Secret Key', 'paygate' ),
                 'type'        => 'text',
                 'description' => __( 'This is the Secret Key set in the PayGate Back Office.', 'paygate' ),
                 'desc_tip'    => true,
                 'default'     => '',
             ),
-            'testmode'      => array(
+            'testmode'       => array(
                 'title'       => __( 'Test mode', 'paygate' ),
                 'type'        => 'checkbox',
                 'description' => __( 'Uses a PayGate test account. Request test cards from PayGate', 'paygate' ),
                 'desc_tip'    => true,
                 'default'     => 'yes',
             ),
-            'description'   => array(
+            'description'    => array(
                 'title'       => __( 'Description', 'paygate' ),
                 'type'        => 'textarea',
                 'description' => __( 'This controls the description which the user sees during checkout.', 'paygate' ),
                 'default'     => 'Pay via PayGate',
             ),
-            'button_text'   => array(
+            'button_text'    => array(
                 'title'       => __( 'Order Button Text', 'paygate' ),
                 'type'        => 'text',
                 'description' => __( 'Changes the text that appears on the Place Order button', 'paygate' ),
@@ -525,7 +526,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if ( $currency != 'ZAR' ) {
 
-            $this->add_notice('Store currency must be South Africa', 'error');
+            $this->add_notice( 'Store currency must be South Africa', 'error' );
             return false;
 
         } else {
@@ -601,7 +602,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         unset( $this->data_to_send );
 
         if ( $this->settings['testmode'] == 'yes' ) {
-            $this->paygate_id = self::TEST_PAYGATE_ID;
+            $this->paygate_id     = self::TEST_PAYGATE_ID;
             $this->encryption_key = self::TEST_SECRET_KEY;
         }
 
@@ -610,7 +611,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         $this->data_to_send = array(
             'PAYGATE_ID'       => $this->paygate_id,
-            'REFERENCE'        => $order->get_order_number(),
+            'REFERENCE'        => $order->get_id() . '-' . $order->get_order_number(),
             'AMOUNT'           => number_format( $order_total, 2, '', '' ),
             'CURRENCY'         => get_woocommerce_currency(),
             'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
