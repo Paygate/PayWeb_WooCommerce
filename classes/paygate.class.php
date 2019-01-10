@@ -508,13 +508,13 @@ function add_notice($message, $notice_type = 'success') {
         wc_add_notice($message, $notice_type);
     } else {
         // Use the old version
-        $woocommerce - > add_error($message);
+        $woocommerce->add_error($message);
     }
 }
 public
 function process_review_payment() {
     if (!empty($_POST['order_id'])) {
-        $this - > process_payment($_POST['order_id']);
+        $this->process_payment($_POST['order_id']);
     }
 }
 /**
@@ -529,7 +529,7 @@ function process_review_payment() {
 public
 function process_payment($order_id) {
     if (!empty($order_id)) {
-        $result = $this - > initiate_transaction($order_id);
+        $result = $this->initiate_transaction($order_id);
         $return_data = array('PAY_REQUEST_ID' => $result['PAY_REQUEST_ID'], 'CHECKSUM' => $result['CHECKSUM'], 'result' => 'failure', 'reload' => false, 'refresh' => true, 'paygate_override' => true, 'message' => false, );
         echo json_encode($return_data);
         die;
@@ -545,21 +545,21 @@ function process_payment($order_id) {
 public
 function initiate_transaction($order_id) {
     $order = new WC_Order($order_id);
-    unset($this - > data_to_send);
-    if ($this - > settings['testmode'] == 'yes') {
-        $this - > paygate_id = self::TEST_PAYGATE_ID;
-        $this - > encryption_key = self::TEST_SECRET_KEY;
+    unset($this->data_to_send);
+    if ($this->settings['testmode'] == 'yes') {
+        $this->paygate_id = self::TEST_PAYGATE_ID;
+        $this->encryption_key = self::TEST_SECRET_KEY;
     }
     // Construct variables for post
-    $order_total = $order - > get_total();
-    $this - > data_to_send = array('PAYGATE_ID' => $this - > paygate_id, 'REFERENCE' => $order - > get_id().
-        '-'.$order - > get_order_number(), 'AMOUNT' => number_format($order_total, 2, '', ''), 'CURRENCY' => get_woocommerce_currency(), 'RETURN_URL' => $this - > redirect_url.
-        '&gid='.$order_id, 'TRANSACTION_DATE' => date('Y-m-d H:m:s'), 'LOCALE' => 'en-za', 'COUNTRY' => 'ZAF', 'EMAIL' => $order - > get_billing_email(), 'NOTIFY_URL' => $this - > notify_url, 'USER3' => 'woocommerce-v'.$this - > version, );
-    $this - > data_to_send['CHECKSUM'] = md5(implode('', $this - > data_to_send).$this - > encryption_key);
-    $response = $this - > curlPost('https://secure.paygate.co.za/payweb3/initiate.trans', $this - > data_to_send);
-    parse_str($response, $this - > data_to_send);
-    if (isset($this - > data_to_send['PAY_REQUEST_ID'])) {
-        $processData = array('PAY_REQUEST_ID' => $this - > data_to_send['PAY_REQUEST_ID'], 'CHECKSUM' => $this - > data_to_send['CHECKSUM'], );
+    $order_total = $order->get_total();
+    $this->data_to_send = array('PAYGATE_ID' => $this->paygate_id, 'REFERENCE' => $order->get_id().
+        '-'.$order->get_order_number(), 'AMOUNT' => number_format($order_total, 2, '', ''), 'CURRENCY' => get_woocommerce_currency(), 'RETURN_URL' => $this->redirect_url.
+        '&gid='.$order_id, 'TRANSACTION_DATE' => date('Y-m-d H:m:s'), 'LOCALE' => 'en-za', 'COUNTRY' => 'ZAF', 'EMAIL' => $order->get_billing_email(), 'NOTIFY_URL' => $this->notify_url, 'USER3' => 'woocommerce-v'.$this->version, );
+    $this->data_to_send['CHECKSUM'] = md5(implode('', $this->data_to_send).$this->encryption_key);
+    $response = $this->curlPost('https://secure.paygate.co.za/payweb3/initiate.trans', $this->data_to_send);
+    parse_str($response, $this->data_to_send);
+    if (isset($this->data_to_send['PAY_REQUEST_ID'])) {
+        $processData = array('PAY_REQUEST_ID' => $this->data_to_send['PAY_REQUEST_ID'], 'CHECKSUM' => $this->data_to_send['CHECKSUM'], );
         return $processData;
     }
 }
