@@ -396,24 +396,22 @@ HTML;
 </form>
 <script>
 jQuery(document).ready(function(){
-    jQuery.blockUI({
-        message: "{$messageText}",
-        baseZ: 99999,
-        overlayCSS:
-        {
-            background: "#fff",
-            opacity: 0.6
-        },
-        css: {
-            padding:        "20px",
-            zindex:         "9999999",
-            textAlign:      "center",
-            color:          "#2b2d30",
-            border:         "1px solid #000",
-            backgroundColor:"#fff",
-            cursor:         "wait",
-            lineHeight:     "24px",
-        }
+    jQuery(function(){
+        jQuery("body").block({
+            message: "{$messageText}",
+            overlayCSS: {
+                background: "#fff",
+                opacity: 0.6
+            },
+            css: {
+                padding:        20,
+                textAlign:      "center",
+                color:          "#555",
+                border:         "3px solid #aaa",
+                backgroundColor:"#fff",
+                cursor:         "wait"
+            }
+        });
     });
 
     jQuery("#submit_paygate_payment_form").click();
@@ -472,7 +470,7 @@ HTML;
         $order_total        = $order->get_total();
         $this->data_to_send = array(
             'PAYGATE_ID'       => $this->merchant_id,
-            'REFERENCE'        => 'Order ' . $order->get_order_number(),
+            'REFERENCE'        => $order->get_id() . '-' . $order->get_order_number(),
             'AMOUNT'           => number_format( $order_total, 2, '', '' ),
             'CURRENCY'         => get_woocommerce_currency(),
             'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
@@ -575,7 +573,7 @@ HTML;
                         $fields = array(
                             'PAYGATE_ID'     => $this->merchant_id,
                             'PAY_REQUEST_ID' => $_POST['PAY_REQUEST_ID'],
-                            'REFERENCE'      => 'Order ' . $order->get_order_number(),
+                            'REFERENCE'      => $order->get_id() . '-' . $order->get_order_number(),
                         );
                         $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->encryption_key );
 
@@ -693,7 +691,7 @@ HTML;
         echo 'OK';
 
         // Check if IPN enabled
-        if ( !isset($this->settings['disablenotify']) || empty($this->settings['disablenotify']) || $this->settings['disablenotify'] != 'yes' ) {
+        if ( !isset( $this->settings['disablenotify'] ) || empty( $this->settings['disablenotify'] ) || $this->settings['disablenotify'] != 'yes' ) {
             if ( isset( $_POST ) ) {
 
                 $errors       = false;
@@ -743,7 +741,8 @@ HTML;
                 }
 
                 if ( isset( $paygate_data['REFERENCE'] ) ) {
-                    $order_id = str_replace( 'Order', '', $paygate_data['REFERENCE'] );
+                    $order_id = explode( "-", $paygate_data['REFERENCE'] );
+                    $order_id = $order_id[0];
                 } else {
                     $order_id = '';
                 }
