@@ -564,7 +564,8 @@ HTML;
                     $this->encryption_key = self::TEST_ENCRYPTION_KEY;
                 }
 
-                $checksum_source = $this->merchant_id . $pay_request_id . $status . 'Order ' . $order->get_order_number() . $this->encryption_key;
+                $reference = $order->get_id() . '-' . $order->get_order_number();
+                $checksum_source = $this->merchant_id . $pay_request_id . $status . $reference . $this->encryption_key;
                 $test_checksum   = md5( $checksum_source );
 
                 if ( !$order->has_status( 'processing' ) && !$order->has_status( 'completed' ) ) {
