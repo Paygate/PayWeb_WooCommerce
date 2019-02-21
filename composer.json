@@ -1,0 +1,16 @@
+{
+	"name": "paygate/payweb-woocommerce",
+	"description": "Performance optimization plugin for WordPress",
+	"keywords": [
+		"payment gateway"
+	],
+	"homepage": "https://www.paygate.co.za",
+	"authors": [
+		{
+			"name": "PayGate",
+			"email": "support@paygate.co.za",
+			"homepage": "https://www.paygate.co.za/"
+		}
+	],
+	"type": "wordpress-plugin"
+}
