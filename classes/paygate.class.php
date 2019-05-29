@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2018 PayGate (Pty) Ltd
+ * Copyright (c) 2019 PayGate (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -395,7 +395,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             ) );
         }
 
-        wp_enqueue_style( 'paygate-checkout-css', PAYGATE_PLUGIN_URL . 'assets/css/paygate_checkout.css', array(), WC_VERSION );
+        wp_enqueue_style( 'paygate-checkout-css', PAYGATE_PLUGIN_URL . 'assets/css/paygate_checkout-03-19.css', array(), WC_VERSION );
     }
 
     /**

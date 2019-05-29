@@ -431,10 +431,18 @@ class WP_GitHub_Updater
      */
     public function get_changelog()
     {
-        $_changelog = $this->remote_get( $this->config['raw_url'] . '/changelog.txt' );
-        $_changelog = nl2br( $_changelog['body'] );
+        $_changelog = '';
+        if ( !is_wp_error( $this->config ) ) {
+            $_changelog = $this->remote_get( $this->config['raw_url'] . '/changelog.txt' );
+        }
+        if ( !is_wp_error( $_changelog ) ) {
+            $_changelog = nl2br( $_changelog['body'] );
+        } else {
+            $_changelog = '';
+        }
         // return
         return ( !empty( $_changelog ) ? $_changelog : 'Could not get changelog from server.' );
+
     }
 
     /**
