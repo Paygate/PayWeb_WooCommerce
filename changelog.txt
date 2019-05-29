@@ -1,3 +1,8 @@
+= 1.2.0 - May 29, 2019 =
+* WordPress 5.2 Update - check for WP_Error object and handle accordingly
+* Test on WooCommerce 3.6
+* Fix overflow scroll for smaller iPhones
+
 = 1.1.9 - January 10, 2019 =
 
 * Wordpress 5 compatibility
