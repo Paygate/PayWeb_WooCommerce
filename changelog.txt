@@ -1,3 +1,11 @@
+=1.3.0 - Apr 08, 2020
+* WooCommerce 4.0 compatible.
+* PHP7.3 compatible.
+* Fixed bugs and improved card vaulting.
+* Combine iFrame and Redirect implementations.
+* Handle iFrame min-width issue for some payment methods that use QR codes.
+* Fix SSL Verify which breaks on some servers.
+
 = 1.2.0 - May 29, 2019 =
 * WordPress 5.2 Update - check for WP_Error object and handle accordingly
 * Test on WooCommerce 3.6
@@ -6,8 +14,8 @@
 = 1.1.9 - January 10, 2019 =
 
 * Wordpress 5 compatibility
-* Add support for sequential order number plugins (get_order_number and get_id)
-* Add support for plugin update icons and 'Tested Version'
+* Add support for sequential order number plugins (get_order_number and get_id).
+* Add support for plugin update icons and 'Tested Version'.
 
 = 1.1.8 - December 6, 2018 =
 
@@ -18,43 +26,43 @@
 = 1.1.7 - November 30, 2018 =
 
 * Add auto-update feature
-* Add check for terms and conditions on "pay_for_order" page
+* Add check for terms and conditions on "pay_for_order" page.
 
 = 1.1.6 - October 24, 2018 =
 
-* Use non-conflict jQuery
+* Use non-conflict jQuery.
 
 = 1.1.5 - October 13, 2018 =
 
-* Apply alternative approach to JS click event
+* Apply alternative approach to JS click event.
 
 = 1.1.4 - August 7, 2018 =
 
-* Backwards compatibility with older plugin settings
+* Backwards compatibility with older plugin settings.
 
 = 1.1.3 - May 16, 2018 =
 
-* Reversion and rebrand. Add options to toggle redirect OR notify
+* Reversion and rebrand. Add options to toggle redirect OR notify.
 
 = 3.3.8 - May 16, 2018 =
 
-* Fix double stock reduction on SiD notify
+* Fix double stock reduction on SiD notify.
 
 = 3.3.7 - April 19, 2018 =
 
-* Fix WP debug.log entry when NOTIFY method accessed directly
+* Fix WP debug.log entry when NOTIFY method accessed directly.
 
 = 3.3.6 - April 16, 2018 =
 
-* Fix notify url broken on some url rewrites to HTTPS
+* Fix notify url broken on some url rewrites to HTTPS.
 
 = 3.3.5 - April 11, 2018 =
 
-* Fix redirect response sometimes not captured
+* Fix redirect response sometimes not captured.
 
 = 3.3.3 - March 13, 2018 =
 
-* Add WC 3.3 compatibility, better declined and cancel handling
+* Add WC 3.3 compatibility, better declined and cancel handling.
 
 = 3.2.3 - November 16, 2017 =
 
@@ -62,8 +70,8 @@
 
 = 1.1.1 - October 17, 2017 =
 
-* Fixed WooCommerce compatiblity issues and warning errors including order status on 'Thank You' page, order total and order billing email.
-* Solved paymant method error where post data failed on checkout.
+* Fixed WooCommerce compatibility issues and warning errors including order status on 'Thank You' page, order total and order billing email.
+* Solved payment method error where post data failed on checkout.
 
 = 1.1.0 - March 1, 2017 =
 
@@ -83,4 +91,4 @@
 
 = 1.0.0 - March 17, 2015 =
 
-* First Release
+* First Release.
