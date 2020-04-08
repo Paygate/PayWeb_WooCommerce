@@ -595,7 +595,7 @@ HTML;
         if ( is_wp_error( $return ) ) {
             echo $return->get_error_message();
         } else {
-            if ( $this->settings['payment_type'] === 'redirect' ) {
+            if ( $this->settings['payment_type'] !== 'iframe' ) {
                 // Do redirect
                 echo $this->generate_paygate_form( $order_id );
             }
@@ -773,7 +773,7 @@ HTML;
                                 $woocommerce->cart->empty_cart();
                             }
                             $redirect_link = $this->get_return_url( $order );
-                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                            if ( $this->settings['payment_type'] !== 'iframe' ) {
                                 wp_redirect( $redirect_link );
                             } else {
                                 echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
@@ -789,7 +789,7 @@ HTML;
                                 }
                             }
                             $redirect_link = $order->get_cancel_order_url();
-                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                            if ( $this->settings['payment_type'] !== 'iframe' ) {
                                 wp_redirect( $redirect_link );
                             } else {
                                 echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
@@ -805,7 +805,7 @@ HTML;
                                 }
                             }
                             $redirect_link = $order->get_cancel_order_url();
-                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                            if ( $this->settings['payment_type'] !== 'iframe' ) {
                                 wp_redirect( $redirect_link );
                             } else {
                                 echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
@@ -823,7 +823,7 @@ HTML;
                                     'error' );
                             }
                             $redirect_link = $order->get_cancel_order_url();
-                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                            if ( $this->settings['payment_type'] !== 'iframe' ) {
                                 wp_redirect( $redirect_link );
                             } else {
                                 echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
