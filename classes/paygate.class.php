@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2019 PayGate (Pty) Ltd
+ * Copyright (c) 2020 PayGate (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -28,7 +28,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const TEST_PAYGATE_ID     = '10011072130';
     const TEST_ENCRYPTION_KEY = 'secret';
 
-    public $version = '3.2.3';
+    public $version = '4.0.0';
 
     public $id = 'paygate';
 
@@ -61,7 +61,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             'products',
         );
 
-        // Load the settings.
+        // Load the settings
         $this->init_form_fields();
         $this->init_settings();
 
@@ -80,7 +80,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->msg['message'] = "";
         $this->msg['class']   = "";
 
-        // Setup the test data, if in test mode.
+        // Setup the test data, if in test mode
         if ( $this->settings['testmode'] == 'yes' ) {
             $this->add_testmode_admin_settings_notice();
         }
@@ -114,33 +114,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             $this,
             'receipt_page',
         ) );
-    }
 
-    /**
-     * Add a notice to the merchant_key and merchant_id fields when in test mode.
-     *
-     * @since 1.0.0
-     */
-    public function add_testmode_admin_settings_notice()
-    {
-        $this->form_fields['paygate_id']['description'] .= ' <br><br><strong>' . __( 'PayGate ID currently in use.', 'paygate' ) . ' ( 10011072130 )</strong>';
-        $this->form_fields['encryption_key']['description'] .= ' <br><br><strong>' . __( 'PayGate Encryption Key currently in use.', 'paygate' ) . ' ( secret )</strong>';
-    }
+        add_action( 'wp_ajax_order_pay_payment', array( $this, 'process_review_payment' ) );
+        add_action( 'wp_ajax_nopriv_order_pay_payment', array( $this, 'process_review_payment' ) );
 
-    /**
-     * Show Message.
-     *
-     * Display message depending on order results.
-     *
-     * @since 1.0.0
-     *
-     * @param $content
-     *
-     * @return string
-     */
-    public function show_message( $content )
-    {
-        return '<div class="' . $this->msg['class'] . '">' . $this->msg['message'] . '</div>' . $content;
+        add_action( 'wp_enqueue_scripts', array( $this, 'paygate_payment_scripts' ) );
     }
 
     /**
@@ -155,37 +133,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         }
 
         if ( is_ssl() ) {
-            return $this->plugin_url = str_replace( 'http://', 'https://', WP_PLUGIN_URL ) . "/" . plugin_basename( dirname( dirname( __FILE__ ) ) );
+            return $this->plugin_url = str_replace( 'http://', 'https://',
+                WP_PLUGIN_URL ) . "/" . plugin_basename( dirname( dirname( __FILE__ ) ) );
         } else {
             return $this->plugin_url = WP_PLUGIN_URL . "/" . plugin_basename( dirname( dirname( __FILE__ ) ) );
-        }
-    }
-
-    /**
-     * @param $resultDescription string
-     */
-    public function declined_msg( $resultDescription )
-    {
-        echo '<p class="woocommerce-thankyou-order-failed">';
-        _e( $resultDescription, 'woocommerce' );
-        echo '</p>';
-    }
-
-    public function set_vault_details( $order_id )
-    {
-        $vaultCard    = ( isset( $_POST['wc-' . $this->id . '-new-payment-method'] ) ) ? $_POST['wc-' . $this->id . '-new-payment-method'] : 'no';
-        $paymentToken = ( isset( $_POST['wc-' . $this->id . '-payment-token'] ) ) ? $_POST['wc-' . $this->id . '-payment-token'] : null;
-
-        if ( $paymentToken == 'new' ) {
-            $vaultCard = 'true';
-        }
-
-        if ( $vaultCard != 'no' ) {
-            update_post_meta( $order_id, 'wc-' . $this->id . '-new-payment-method', $vaultCard );
-        }
-
-        if ( $paymentToken != 'no' && $paymentToken != 'new' ) {
-            update_post_meta( $order_id, 'wc-' . $this->id . '-payment-token', $paymentToken );
         }
     }
 
@@ -227,6 +178,17 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 'desc_tip'    => true,
                 'default'     => '',
             ),
+            'payment_type'   => array(
+                'title'       => __( 'Implementation', 'paygate' ),
+                'label'       => __( 'Choose payment type', 'paygate' ),
+                'type'        => 'select',
+                'description' => 'Which implementation to use - Redirect or iFrame',
+                'default'     => 'redirect',
+                'options'     => array(
+                    'redirect' => 'Redirect',
+                    'iframe'   => 'iFrame',
+                ),
+            ),
             'testmode'       => array(
                 'title'       => __( 'Test mode', 'paygate' ),
                 'type'        => 'checkbox',
@@ -265,6 +227,29 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     }
 
     /**
+     * Add a notice to the merchant_key and merchant_id fields when in test mode.
+     *
+     * @since 1.0.0
+     */
+    public function add_testmode_admin_settings_notice()
+    {
+        $this->form_fields['paygate_id']['description'] .= ' <br><br><strong>' . __( 'PayGate ID currently in use.',
+            'paygate' ) . ' ( 10011072130 )</strong>';
+        $this->form_fields['encryption_key']['description'] .= ' <br><br><strong>' . __( 'PayGate Encryption Key currently in use.',
+            'paygate' ) . ' ( secret )</strong>';
+    }
+
+    /**
+     * @param $resultDescription string
+     */
+    public function declined_msg( $resultDescription )
+    {
+        echo '<p class="woocommerce-thankyou-order-failed">';
+        _e( $resultDescription, 'woocommerce' );
+        echo '</p>';
+    }
+
+    /**
      * Admin Panel Options
      * - Options for bits like 'title'
      *
@@ -277,7 +262,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         <p><?php printf( __( 'PayGate works by sending the user to %sPayGate%s to enter their payment information.', 'paygate' ), '<a href="https://www.paygate.co.za/">', '</a>' );?></p>
 
         <table class="form-table">
-            <?php $this->generate_settings_html(); // Generate the HTML For the settings form. ?>
+            <?php $this->generate_settings_html(); // Generate the HTML For the settings form.
+        ?>
         </table><!--/.form-table-->
         <?php
 }
@@ -293,8 +279,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     }
 
     /**
-     * There are no payment fields for PayGate, but we want to show the description if set,
-     * Otherwise show PayVault fields if enabled
+     * Enable vaulting and card selection for PayGate
      *
      * @since 1.0.0
      */
@@ -303,7 +288,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if ( $this->payVault == 'yes' ) {
             if ( count( $_POST ) > 0 ) {
-                //Display stored credit card selection
+                // Display stored credit card selection
                 $tokens       = WC_Payment_Tokens::get_customer_tokens( get_current_user_id(), $this->id );
                 $defaultToken = WC_Payment_Tokens::get_customer_default_token( get_current_user_id() );
 
@@ -316,20 +301,27 @@ HTML;
                     /**
                      * @var $token WC_Payment_Token_CC
                      */
+                    $now = new DateTime( date( 'Y-m' ) );
                     foreach ( $tokens as $token ) {
+                        $valid   = false;
+                        $expires = new DateTime( $token->get_expiry_year() . '-' . $token->get_expiry_month() );
+                        $valid   = $expires >= $now;
 
-                        $cardType = ucwords( $token->get_card_type() );
+                        // Don't show expired cards
+                        if ( $valid ) {
+                            $cardType = ucwords( $token->get_card_type() );
 
-                        if ( $token->get_id() == $defaultToken->get_id() ) {
-                            $selected = 'selected';
-                        } else {
-                            $selected = '';
-                        }
+                            if ( $defaultToken && $token->get_id() == $defaultToken->get_id() ) {
+                                $selected = 'selected';
+                            } else {
+                                $selected = '';
+                            }
 
-                        echo <<<HTML
-                    <option value="{$token->get_token()}" {$selected}>Use {$cardType} ending in {$token->get_last4()}</option>
+                            echo <<<HTML
+                     <option value="{$token->get_token()}" {$selected}>Use {$cardType} ending in {$token->get_last4()}</option> }
 
 HTML;
+                        }
                     }
 
                     echo <<<HTML
@@ -346,7 +338,7 @@ HTML;
 HTML;
                 }
             } else {
-                //Display message for adding cards via "My Account" screen
+                // Display message for adding cards via "My Account" screen
 
                 echo <<<HTML
     <p>Cards cannot be added manually. Please select the "Use a new card" option in the checkout process when paying with PayGate</p>
@@ -354,25 +346,277 @@ HTML;
 HTML;
 
             }
-        } else if ( isset( $this->settings['description'] ) && $this->settings['description'] != '' ) {
-            echo wpautop( wptexturize( $this->settings['description'] ) );
+        } else {
+            if ( isset( $this->settings['description'] ) && $this->settings['description'] != '' ) {
+                echo wpautop( wptexturize( $this->settings['description'] ) );
+            }
+        }
+    }
+
+    /**
+     * Process the payment and return the result.
+     *
+     * @param int $order_id
+     *
+     * @return array
+     * @since 1.0.0
+     *
+     */
+    public function process_payment( $order_id )
+    {
+        if ( $this->settings['payment_type'] === 'iframe' ) {
+            echo $this->get_ajax_return_data_json( $order_id );
+            die;
+        } else {
+            $order = new WC_Order( $order_id );
+
+            return [
+                'result'   => 'success',
+                'redirect' => $order->get_checkout_payment_url( true ),
+            ];
+        }
+
+    }
+
+    /**
+     * Process the payment and return the result.
+     *
+     * @param int $order_id
+     *
+     * @return array
+     * @since 1.0.0
+     *
+     */
+    public function get_ajax_return_data_json( $order_id )
+    {
+        $returnParams = $this->initiate_transaction( $order_id );
+
+        $return_data = array(
+            'PAY_REQUEST_ID'   => $returnParams['PAY_REQUEST_ID'],
+            'CHECKSUM'         => $returnParams['CHECKSUM'],
+            'result'           => 'failure',
+            'reload'           => false,
+            'refresh'          => true,
+            'paygate_override' => true,
+            'message'          => false,
+        );
+
+        return json_encode( $return_data );
+    }
+
+    public function process_review_payment()
+    {
+        if ( !empty( $_POST['order_id'] ) ) {
+            $this->process_payment( $_POST['order_id'] );
+        }
+    }
+
+    public function get_order_id_order_pay()
+    {
+        global $wp;
+
+        // Get the order ID
+        $order_id = absint( $wp->query_vars['order-pay'] );
+
+        if ( empty( $order_id ) || $order_id == 0 ) {
+            return;
+        }
+
+        // Exit
+        return $order_id;
+    }
+
+    /**
+     * Does the initiate to PayGate
+     *
+     * @param $order_id
+     *
+     * @return array|WP_Error
+     */
+    public function initiate_transaction( $order_id )
+    {
+        $order       = new WC_Order( $order_id );
+        $customer_id = $order->get_customer_id();
+        unset( $this->data_to_send );
+
+        if ( session_status() === PHP_SESSION_NONE ) {
+            session_start();
+        }
+
+        if ( $this->settings['testmode'] == 'yes' ) {
+            $this->merchant_id    = self::TEST_PAYGATE_ID;
+            $this->encryption_key = self::TEST_ENCRYPTION_KEY;
+        }
+
+        // Construct variables for post
+        $order_total = $order->get_total();
+        if ( $this->settings['disablenotify'] != 'yes' ) {
+            $this->data_to_send = array(
+                'PAYGATE_ID'       => $this->merchant_id,
+                'REFERENCE'        => $order->get_id() . '-' . $order->get_order_number(),
+                'AMOUNT'           => number_format( $order_total, 2, '', '' ),
+                'CURRENCY'         => get_woocommerce_currency(),
+                'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
+                'TRANSACTION_DATE' => date( 'Y-m-d H:m:s' ),
+                'LOCALE'           => 'en-za',
+                'COUNTRY'          => 'ZAF',
+                'EMAIL'            => $order->get_billing_email(),
+                'NOTIFY_URL'       => $this->notify_url,
+                'USER3'            => 'woocommerce-v' . $this->version,
+            );
+        } else {
+            $this->data_to_send = array(
+                'PAYGATE_ID'       => $this->merchant_id,
+                'REFERENCE'        => $order->get_id() . '-' . $order->get_order_number(),
+                'AMOUNT'           => number_format( $order_total, 2, '', '' ),
+                'CURRENCY'         => get_woocommerce_currency(),
+                'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
+                'TRANSACTION_DATE' => date( 'Y-m-d H:m:s' ),
+                'LOCALE'           => 'en-za',
+                'COUNTRY'          => 'ZAF',
+                'EMAIL'            => $order->get_billing_email(),
+                'USER3'            => 'woocommerce-v' . $this->version,
+            );
+        }
+
+        if ( $this->payVault == 'yes' ) {
+            // Tokenisation is enabled for store
+            // Check if customer has existing tokens or chooses to tokenise
+            $custVault = get_post_meta( $customer_id, 'wc-' . $this->id . '-new-payment-method', true );
+            if ( !$custVault && isset( $_POST['wc-' . $this->id . '-new-payment-method'] ) ) {
+                // Customer requesting remember card number
+                update_post_meta( $customer_id, 'wc-' . $this->id . '-new-payment-method', true );
+                $custToken                   = null;
+                $this->data_to_send['VAULT'] = 1;
+            } elseif ( isset( $_POST['wc-' . $this->id . '-payment-token'] ) && $_POST['wc-' . $this->id . '-payment-token'] == 'new' ) {
+                $this->data_to_send['VAULT'] = 1;
+            } elseif ( isset( $_POST['wc-' . $this->id . '-payment-token'] ) && $_POST['wc-' . $this->id . '-payment-token'] == 'no' ) {
+                update_post_meta( $customer_id, 'wc-' . $this->id . '-new-payment-method', false );
+            } elseif ( isset( $_POST['wc-' . $this->id . '-payment-token'] ) ) {
+                $this->data_to_send['VAULT_ID'] = $_POST['wc-' . $this->id . '-payment-token'];
+            }
+        }
+
+        $this->data_to_send['CHECKSUM'] = md5( implode( '', $this->data_to_send ) . $this->encryption_key );
+
+        $this->initiate_response = wp_remote_post( $this->initiate_url, array(
+            'method'      => 'POST',
+            'body'        => $this->data_to_send,
+            'timeout'     => 70,
+            'sslverify'   => true,
+            'user-agent'  => 'WooCommerce',
+            'httpversion' => '1.1',
+        ) );
+
+        if ( is_wp_error( $this->initiate_response ) ) {
+            return $this->initiate_response;
+        }
+
+        parse_str( $this->initiate_response['body'], $parsed_response );
+
+        if ( empty( $this->initiate_response['body'] ) || array_key_exists( 'ERROR',
+            $parsed_response ) || !array_key_exists( 'PAY_REQUEST_ID', $parsed_response ) ) {
+            $this->msg['class']   = 'woocommerce-error';
+            $this->msg['message'] = "Thank you for shopping with us. However, we were unable to initiate your payment. Please try again.";
+            if ( !$order->has_status( 'failed' ) ) {
+                $order->update_status( 'failed' );
+            }
+            $order->add_order_note( 'Response from initiating payment:' . print_r( $this->data_to_send,
+                true ) . ' ' . $this->initiate_response['body'] );
+
+            return new WP_Error( 'paygate-error',
+                __( $this->show_message( '<br><a class="button wc-forward" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart',
+                    'paygate' ) . '</a>' ), 'paygate' ) );
+        } else {
+            $_SESSION['PARSED_RESPONSE'] = $parsed_response;
+        }
+
+        $this->initiate_response['body'] = $parsed_response;
+
+        return $parsed_response;
+    }
+
+    /**
+     * Show Message.
+     *
+     * Display message depending on order results.
+     *
+     * @param $content
+     *
+     * @return string
+     * @since 1.0.0
+     *
+     */
+    public function show_message( $content )
+    {
+        return '<div class="' . $this->msg['class'] . '">' . $this->msg['message'] . '</div>' . $content;
+    }
+
+    /**
+     * Add payment scripts for iFrame support
+     *
+     * @since 1.0.0
+     */
+    public function paygate_payment_scripts()
+    {
+        if ( $this->settings['payment_type'] === 'iframe' ) {
+            wp_enqueue_script( 'paygate-checkout-js', $this->get_plugin_url() . '/assets/js/paygate_checkout.js', array(),
+                WC_VERSION, true );
+            if ( is_wc_endpoint_url( 'order-pay' ) ) {
+                $order_id = $this->get_order_id_order_pay();
+                wp_localize_script( 'paygate-checkout-js', 'paygate_checkout_js', array(
+                    'is_order_pay'      => true,
+                    'pay_now_form_data' => $this->get_ajax_return_data_json( $order_id ),
+                ) );
+
+            } else {
+                wp_localize_script( 'paygate-checkout-js', 'paygate_checkout_js', array(
+                    'is_order_pay' => false,
+                    'order_id'     => 0,
+                ) );
+            }
+            wp_enqueue_style( 'paygate-checkout-css', $this->get_plugin_url() . '/assets/css/paygate_checkout.css', array(), WC_VERSION );
+        }
+    }
+
+    /**
+     * Receipt page.
+     *
+     * Display text and a button to direct the customer to PayGate.
+     *
+     * @param $order
+     *
+     * @since 1.0.0
+     *
+     */
+    public function receipt_page( $order_id )
+    {
+        $return = $this->initiate_transaction( $order_id );
+        if ( is_wp_error( $return ) ) {
+            echo $return->get_error_message();
+        } else {
+            if ( $this->settings['payment_type'] === 'redirect' ) {
+                // Do redirect
+                echo $this->generate_paygate_form( $order_id );
+            }
         }
     }
 
     /**
      * Generate the PayGate button link.
-     *
-     * @since 1.0.0
+     * Redirect case
      *
      * @param $order_id
      *
      * @return string
+     * @since 1.0.0
+     *
      */
     public function generate_paygate_form( $order_id )
     {
         $order = new WC_Order( $order_id );
 
-        parse_str( $this->initiate_response['body'], $parsed_response );
+        $parsed_response = $this->initiate_response['body'];
 
         $messageText = esc_js( __( 'Thank you for your order. We are now redirecting you to PayGate to make payment.', 'paygate' ) );
 
@@ -398,7 +642,7 @@ HTML;
 jQuery(document).ready(function(){
     jQuery(function(){
         jQuery("body").block({
-            message: "{$messageText}",
+            message: "",
             overlayCSS: {
                 background: "#fff",
                 opacity: 0.6
@@ -424,124 +668,7 @@ HTML;
     }
 
     /**
-     * Process the payment and return the result.
-     *
-     * @since 1.0.0
-     *
-     * @param int $order_id
-     *
-     * @return array
-     */
-    public function process_payment( $order_id )
-    {
-        $order = new WC_Order( $order_id );
-
-        $this->set_vault_details( $order_id );
-
-        return array(
-            'result'   => 'success',
-            'redirect' => $order->get_checkout_payment_url( true ),
-        );
-
-    }
-
-    /**
-     * Does the initiate to PayGate
-     *
-     * @param $order_id
-     *
-     * @return array|WP_Error
-     */
-    public function initiate_transaction( $order_id )
-    {
-        $order = new WC_Order( $order_id );
-
-        unset( $this->data_to_send );
-
-        if ( $this->settings['testmode'] == 'yes' ) {
-            $this->merchant_id    = self::TEST_PAYGATE_ID;
-            $this->encryption_key = self::TEST_ENCRYPTION_KEY;
-        }
-
-        $this->vaultCard = get_post_meta( $order_id, 'wc-' . $this->id . '-new-payment-method', true );
-        $this->vaultId   = get_post_meta( $order_id, 'wc-' . $this->id . '-payment-token', true );
-
-        // Construct variables for post
-        $order_total        = $order->get_total();
-        $this->data_to_send = array(
-            'PAYGATE_ID'       => $this->merchant_id,
-            'REFERENCE'        => $order->get_id() . '-' . $order->get_order_number(),
-            'AMOUNT'           => number_format( $order_total, 2, '', '' ),
-            'CURRENCY'         => get_woocommerce_currency(),
-            'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
-            'TRANSACTION_DATE' => date( 'Y-m-d H:m:s' ),
-            'LOCALE'           => 'en-za',
-            'COUNTRY'          => 'ZAF',
-            'EMAIL'            => $order->get_billing_email(),
-            'NOTIFY_URL'       => $this->notify_url,
-            'USER3'            => 'woocommerce-v' . $this->version,
-        );
-
-        if ( $this->payVault == 'yes' ) {
-            if ( $this->vaultCard == 'true' ) {
-                $this->data_to_send['VAULT'] = 1;
-            }
-
-            if ( !empty( $this->vaultId ) && $this->vaultId != 'new' ) {
-                $this->data_to_send['VAULT_ID'] = $this->vaultId;
-            }
-        }
-
-        $this->data_to_send['CHECKSUM'] = md5( implode( '', $this->data_to_send ) . $this->encryption_key );
-
-        $this->initiate_response = wp_remote_post( $this->initiate_url, array(
-            'method'      => 'POST',
-            'body'        => $this->data_to_send,
-            'timeout'     => 70,
-            'sslverify'   => false,
-            'user-agent'  => 'WooCommerce',
-            'httpversion' => '1.1',
-        ) );
-
-        if ( is_wp_error( $this->initiate_response ) ) {
-            return $this->initiate_response;
-        }
-
-        parse_str( $this->initiate_response['body'], $parsed_response );
-
-        if ( empty( $this->initiate_response['body'] ) || array_key_exists( 'ERROR', $parsed_response ) || !array_key_exists( 'PAY_REQUEST_ID', $parsed_response ) ) {
-            $this->msg['class']   = 'woocommerce-error';
-            $this->msg['message'] = "Thank you for shopping with us. However, we were unable to initiate your payment. Please try again.";
-            if ( !$order->has_status( 'failed' ) ) {
-                $order->update_status( 'failed' );
-            }
-            $order->add_order_note( 'Response from initiating payment:' . print_r( $this->data_to_send, true ) . ' ' . $this->initiate_response['body'] );
-
-            return new WP_Error( 'paygate-error', __( $this->show_message( '<br><a class="button wc-forward" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'paygate' ) . '</a>' ), 'paygate' ) );
-        }
-    }
-
-    /**
-     * Receipt page.
-     *
-     * Display text and a button to direct the customer to PayGate.
-     *
-     * @since 1.0.0
-     *
-     * @param $order
-     */
-    public function receipt_page( $order )
-    {
-        $return = $this->initiate_transaction( $order );
-        if ( is_wp_error( $return ) ) {
-            echo $return->get_error_message();
-        } else {
-            echo $this->generate_paygate_form( $order );
-        }
-    }
-
-    /**
-     * Check for valid PayGate Redirect
+     * Check for valid PayGate Redirect - from iFrame or  Redirect
      *
      * @since 1.0.0
      */
@@ -549,11 +676,13 @@ HTML;
     {
         global $woocommerce;
 
+        // Only process if IPN is disabled
         if ( isset( $_GET['gid'] ) && isset( $_POST['PAY_REQUEST_ID'] ) ) {
             $order_id = $_GET['gid'];
 
             if ( $order_id != '' ) {
-                $order = wc_get_order( $order_id );
+                $order       = wc_get_order( $order_id );
+                $customer_id = $order->get_customer_id();
 
                 $pay_request_id = $_POST['PAY_REQUEST_ID'];
                 $status         = isset( $_POST['TRANSACTION_STATUS'] ) ? $_POST['TRANSACTION_STATUS'] : "";
@@ -564,121 +693,178 @@ HTML;
                     $this->encryption_key = self::TEST_ENCRYPTION_KEY;
                 }
 
-                $reference = $order->get_id() . '-' . $order->get_order_number();
+                $reference       = $order->get_id() . '-' . $order->get_order_number();
                 $checksum_source = $this->merchant_id . $pay_request_id . $status . $reference . $this->encryption_key;
                 $test_checksum   = md5( $checksum_source );
 
-                if ( !$order->has_status( 'processing' ) && !$order->has_status( 'completed' ) ) {
+                if ( $checksum == $test_checksum ) {
+                    $fields = array(
+                        'PAYGATE_ID'     => $this->merchant_id,
+                        'PAY_REQUEST_ID' => $_POST['PAY_REQUEST_ID'],
+                        'REFERENCE'      => $order->get_id() . '-' . $order->get_order_number(),
+                    );
+                    $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->encryption_key );
 
-                    if ( $checksum == $test_checksum ) {
-                        $fields = array(
-                            'PAYGATE_ID'     => $this->merchant_id,
-                            'PAY_REQUEST_ID' => $_POST['PAY_REQUEST_ID'],
-                            'REFERENCE'      => $order->get_id() . '-' . $order->get_order_number(),
-                        );
-                        $fields['CHECKSUM'] = md5( implode( '', $fields ) . $this->encryption_key );
+                    $response = wp_remote_post( $this->query_url, array(
+                        'method'      => 'POST',
+                        'body'        => $fields,
+                        'timeout'     => 70,
+                        'sslverify'   => true,
+                        'user-agent'  => 'WooCommerce/' . WC_VERSION,
+                        'httpversion' => '1.1',
+                    ) );
 
-                        $response = wp_remote_post( $this->query_url, array(
-                            'method'      => 'POST',
-                            'body'        => $fields,
-                            'timeout'     => 70,
-                            'sslverify'   => false,
-                            'user-agent'  => 'WooCommerce/' . WC_VERSION,
-                            'httpversion' => '1.1',
-                        ) );
+                    parse_str( $response['body'], $parsed_response );
 
-                        parse_str( $response['body'], $parsed_response );
+                    if ( $this->payVault == 'yes' ) {
+                        $vaultCard = get_post_meta( $customer_id, 'wc-' . $this->id . '-new-payment-method', true );
 
-                        $vaultCard = get_post_meta( $order_id, 'wc-' . $this->id . '-new-payment-method', true );
-
-                        if ( $vaultCard == 'true' && array_key_exists( 'VAULT_ID', $parsed_response ) ) {
-                            //Save Token details
+                        if ( $vaultCard == true && array_key_exists( 'VAULT_ID', $parsed_response ) ) {
+                            // Save Token details
                             $vaultId  = $parsed_response['VAULT_ID'];
                             $card     = isset( $parsed_response['PAYVAULT_DATA_1'] ) ? $parsed_response['PAYVAULT_DATA_1'] : "";
                             $expiry   = isset( $parsed_response['PAYVAULT_DATA_2'] ) ? $parsed_response['PAYVAULT_DATA_2'] : "";
                             $cardType = isset( $parsed_response['PAY_METHOD_DETAIL'] ) ? $parsed_response['PAY_METHOD_DETAIL'] : "";
 
-                            $token = new WC_Payment_Token_CC();
+                            // Get existing tokens for user
+                            $tokenDs = new WC_Payment_Token_Data_Store();
+                            $tokens  = $tokenDs->get_tokens( [
+                                'user_id' => $customer_id,
+                            ] );
 
-                            $token->set_token( $vaultId );
+                            $exists = false;
+                            $now    = ( new DateTime() )->format( 'mY' );
 
-                            $token->set_gateway_id( $this->id );
-                            $token->set_card_type( strtolower( $cardType ) );
-                            $token->set_last4( substr( $card, -4 ) );
-                            $token->set_expiry_month( substr( $expiry, 0, 2 ) );
-                            $token->set_expiry_year( substr( $expiry, -4 ) );
-
-                            $token->set_user_id( get_current_user_id() );
-
-                            $token->set_default( true );
-
-                            $token->save();
-                        }
-
-                        $transaction_id = isset( $parsed_response['TRANSACTION_ID'] ) ? $parsed_response['TRANSACTION_ID'] : "";
-                        $result_desc    = isset( $parsed_response['RESULT_DESC'] ) ? $parsed_response['RESULT_DESC'] : "";
-
-                        // Get latest order in case notify has updated first
-                        $order = wc_get_order( $order_id );
-
-                        // Check if IPN disabled and use redirect instead
-                        if ( $this->settings['disablenotify'] == 'yes' ) {
-                            switch ( $status ) {
-                                case 1:
-                                    $order->add_order_note( 'Response via Redirect: Transaction successful<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
-                                    if ( !$order->has_status( 'processing' ) && !$order->has_status( 'completed' ) ) {
-                                        $order->payment_complete();
-                                    }
-                                    $woocommerce->cart->empty_cart();
-
-                                    break;
-                                case 2:
-                                    $order->add_order_note( 'Response via Redirect, RESULT_DESC: ' . $result_desc . '<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
-                                    if ( !$order->has_status( 'failed' ) ) {
-                                        $order->update_status( 'failed' );
-                                    }
-
-                                    break;
-                                case 4:
-                                    $order->add_order_note( 'Response via Redirect: User cancelled transaction<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
-                                    if ( !$order->has_status( 'failed' ) ) {
-                                        $order->update_status( 'failed' );
-                                    }
-
-                                    break;
-                                default:
-                                    $order->add_order_note( 'Response via Redirect, RESULT_DESC: ' . $result_desc . '<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
-                                    if ( !$order->has_status( 'pending' ) ) {
-                                        $order->update_status( 'pending' );
-                                    }
-
-                                    $this->add_notice( 'Your purchase is either pending or an error has occurred. Please follow up with the whomever necessary.', 'error' );
-
-                                    break;
+                            foreach ( $tokens as $token ) {
+                                if ( $token->token == $vaultId ) {
+                                    $exists = true;
+                                }
                             }
-                        }
-                    } else {
-                        // Check if IPN disabled and use redirect instead
-                        if ( $this->settings['disablenotify'] == 'yes' ) {
-                            $order->add_order_note( 'Response via Redirect, Transaction declined.' . '<br/>' );
-                            if ( !$order->has_status( 'failed' ) ) {
-                                $order->update_status( 'failed' );
+
+                            if ( !$exists ) {
+                                $token = new WC_Payment_Token_CC();
+
+                                $token->set_token( $vaultId );
+                                $token->set_gateway_id( $this->id );
+                                $token->set_card_type( strtolower( $cardType ) );
+                                $token->set_last4( substr( $card, -4 ) );
+                                $token->set_expiry_month( substr( $expiry, 0, 2 ) );
+                                $token->set_expiry_year( substr( $expiry, -4 ) );
+                                $token->set_user_id( $customer_id );
+                                $token->set_default( true );
+
+                                $token->save();
                             }
                         }
                     }
+
+                    $transaction_id = isset( $parsed_response['TRANSACTION_ID'] ) ? $parsed_response['TRANSACTION_ID'] : "";
+                    $result_desc    = isset( $parsed_response['RESULT_DESC'] ) ? $parsed_response['RESULT_DESC'] : "";
+
+                    // Get latest order in case notify has updated first
+                    $order = wc_get_order( $order_id );
+                    switch ( $status ) {
+                        case 1:
+                            if ( $this->settings['disablenotify'] == 'yes' ) {
+                                $order->add_order_note( 'Response via Redirect: Transaction successful<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
+                                if ( !$order->has_status( 'processing' ) && !$order->has_status( 'completed' ) ) {
+                                    $order->payment_complete();
+                                }
+                                $woocommerce->cart->empty_cart();
+                            }
+                            $redirect_link = $this->get_return_url( $order );
+                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                                wp_redirect( $redirect_link );
+                            } else {
+                                echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                            }
+                            exit;
+                            break;
+                        case 2:
+                            $this->add_notice( 'The transaction failed', 'error' );
+                            if ( $this->settings['disablenotify'] == 'yes' ) {
+                                $order->add_order_note( 'Response via Redirect, RESULT_DESC: ' . $result_desc . '<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
+                                if ( !$order->has_status( 'failed' ) ) {
+                                    $order->update_status( 'failed' );
+                                }
+                            }
+                            $redirect_link = $order->get_cancel_order_url();
+                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                                wp_redirect( $redirect_link );
+                            } else {
+                                echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                            }
+                            exit;
+                            break;
+                        case 4:
+                            $this->add_notice( 'The transaction was cancelled', 'error' );
+                            if ( $this->settings['disablenotify'] == 'yes' ) {
+                                $order->add_order_note( 'Response via Redirect: User cancelled transaction<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
+                                if ( !$order->has_status( 'failed' ) ) {
+                                    $order->update_status( 'failed' );
+                                }
+                            }
+                            $redirect_link = $order->get_cancel_order_url();
+                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                                wp_redirect( $redirect_link );
+                            } else {
+                                echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                            }
+                            exit;
+                            break;
+                        default:
+                            if ( $this->settings['disablenotify'] == 'yes' ) {
+                                $order->add_order_note( 'Response via ' . $this->settings['payment_type'] . ', RESULT_DESC: ' . $result_desc . '<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
+                                if ( !$order->has_status( 'pending' ) ) {
+                                    $order->update_status( 'pending' );
+                                }
+
+                                $this->add_notice( 'Your purchase is either pending or an error has occurred. Please follow up with the whomever necessary.',
+                                    'error' );
+                            }
+                            $redirect_link = $order->get_cancel_order_url();
+                            if ( $this->settings['payment_type'] === 'redirect' ) {
+                                wp_redirect( $redirect_link );
+                            } else {
+                                echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                            }
+                            exit;
+                            break;
+                    }
                 }
+
+                $order = new WC_Order( $order_id );
+
+                $redirect_link = $status == 1 ? $this->get_return_url( $order ) : htmlspecialchars_decode( urldecode( $order->get_cancel_order_url() ) );
+
+                wp_redirect( $redirect_link );
+            } else {
+                wp_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
             }
 
-            $order = new WC_Order( $order_id );
-
-            $redirect_link = $status == 1 ? $this->get_return_url( $order ) : htmlspecialchars_decode( urldecode( $order->get_cancel_order_url() ) );
-
-            wp_redirect( $redirect_link );
-        } else {
-            wp_redirect( get_permalink( wc_get_page_id( 'myaccount' ) ) );
+            exit;
         }
+        die();
+    }
 
-        exit;
+    /**
+     * Add WooCommerce notice
+     *
+     * @since 1.0.0
+     *
+     */
+    public function add_notice(
+        $message, $notice_type = 'success'
+    ) {
+        global $woocommerce;
+        // If function should we use?
+        if ( function_exists( "wc_add_notice" ) ) {
+            // Use the new version of the add_error method
+            wc_add_notice( $message, $notice_type );
+        } else {
+            // Use the old version
+            $woocommerce->add_error( $message );
+        }
     }
 
     /**
@@ -688,11 +874,13 @@ HTML;
      */
     public function check_paygate_notify_response()
     {
+        global $woocommerce;
+
         // Tell PayGate notify we have received
         echo 'OK';
 
-        // Check if IPN enabled
-        if ( !isset( $this->settings['disablenotify'] ) || empty( $this->settings['disablenotify'] ) || $this->settings['disablenotify'] != 'yes' ) {
+        // Check if IPN disabled and process if not
+        if ( $this->settings['disablenotify'] != 'yes' ) {
             if ( isset( $_POST ) ) {
 
                 $errors       = false;
@@ -748,6 +936,48 @@ HTML;
                     $order_id = '';
                 }
 
+                if ( $this->payVault == 'yes' ) {
+                    $order       = wc_get_order( trim( $order_id ) );
+                    $customer_id = $order->get_customer_id();
+                    $vaultCard   = get_post_meta( $customer_id, 'wc-' . $this->id . '-new-payment-method', true );
+
+                    if ( $vaultCard == true && array_key_exists( 'VAULT_ID', $paygate_data ) ) {
+                        // Save Token details
+                        $vaultId  = $paygate_data['VAULT_ID'];
+                        $card     = isset( $paygate_data['PAYVAULT_DATA_1'] ) ? $paygate_data['PAYVAULT_DATA_1'] : "";
+                        $expiry   = isset( $paygate_data['PAYVAULT_DATA_2'] ) ? $paygate_data['PAYVAULT_DATA_2'] : "";
+                        $cardType = isset( $paygate_data['PAY_METHOD_DETAIL'] ) ? $paygate_data['PAY_METHOD_DETAIL'] : "";
+
+                        // Get existing tokens for user
+                        $tokenDs = new WC_Payment_Token_Data_Store();
+                        $tokens  = $tokenDs->get_tokens( [
+                            'user_id' => $customer_id,
+                        ] );
+
+                        $exists = false;
+                        foreach ( $tokens as $token ) {
+                            if ( $token->token == $vaultId ) {
+                                $exists = true;
+                            }
+                        }
+
+                        if ( !$exists ) {
+                            $token = new WC_Payment_Token_CC();
+
+                            $token->set_token( $vaultId );
+                            $token->set_gateway_id( $this->id );
+                            $token->set_card_type( strtolower( $cardType ) );
+                            $token->set_last4( substr( $card, -4 ) );
+                            $token->set_expiry_month( substr( $expiry, 0, 2 ) );
+                            $token->set_expiry_year( substr( $expiry, -4 ) );
+                            $token->set_user_id( get_current_user_id() );
+                            $token->set_default( true );
+
+                            $token->save();
+                        }
+                    }
+                }
+
                 if ( $order_id != '' ) {
                     $order = wc_get_order( trim( $order_id ) );
                     if ( !$errors ) {
@@ -758,11 +988,14 @@ HTML;
 
                             switch ( $paygate_data['TRANSACTION_STATUS'] ) {
                                 case 1:
-
                                     $order->add_order_note( 'Response via Notify: Transaction successful<br/>PayGate Trans Id: ' . $transaction_id . '<br/>' );
                                     if ( !$order->has_status( 'processing' ) && !$order->has_status( 'completed' ) ) {
                                         $order->payment_complete();
                                     }
+                                    $woocommerce->cart->empty_cart();
+                                    $redirect_link = $this->get_return_url( $order );
+                                    echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                                    exit;
                                     break;
                                 case 2:
 
@@ -770,6 +1003,9 @@ HTML;
                                     if ( !$order->has_status( 'failed' ) ) {
                                         $order->update_status( 'failed' );
                                     }
+                                    $redirect_link = $this->get_return_url( $order );
+                                    echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                                    exit;
                                     break;
                                 case 4:
 
@@ -777,6 +1013,9 @@ HTML;
                                     if ( !$order->has_status( 'failed' ) ) {
                                         $order->update_status( 'failed' );
                                     }
+                                    $redirect_link = $this->get_return_url( $order );
+                                    echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                                    exit;
                                     break;
                                 default:
 
@@ -784,6 +1023,9 @@ HTML;
                                     if ( !$order->has_status( 'pending' ) ) {
                                         $order->update_status( 'pending' );
                                     }
+                                    $redirect_link = $this->get_return_url( $order );
+                                    echo '<script>window.top.location.href="' . $redirect_link . '";</script>';
+                                    exit;
                                     break;
                             }
                         }
@@ -797,25 +1039,6 @@ HTML;
                 }
             }
         }
-        die();
-    }
-
-    /**
-     * Add WooCommerce notice
-     *
-     * @since 1.0.0
-     *
-     */
-    public function add_notice( $message, $notice_type = 'success' )
-    {
-        // If function should we use?
-        if ( function_exists( "wc_add_notice" ) ) {
-            // Use the new version of the add_error method
-            wc_add_notice( $message, $notice_type );
-        } else {
-            // Use the old version
-            $woocommerce->add_error( $message );
-        }
     }
 
     /**
@@ -823,8 +1046,9 @@ HTML;
      *
      * @since 1.1.3
      */
-    public function write_log( $log )
-    {
+    public function write_log(
+        $log
+    ) {
         if ( is_array( $log ) || is_object( $log ) ) {
             error_log( print_r( $log, true ) );
         } else {
