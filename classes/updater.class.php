@@ -1,7 +1,7 @@
 <?php
 
 // Prevent loading this file directly and/or if the class is already defined
-if ( !defined( 'ABSPATH' ) || class_exists( 'WPGitHubUpdater' ) || class_exists( 'WP_GitHub_Updater' ) ) {
+if ( !defined( 'ABSPATH' ) || class_exists( 'WP_GitHub_Updater_PW3' ) ) {
     return;
 }
 
@@ -11,7 +11,7 @@ if ( !defined( 'ABSPATH' ) || class_exists( 'WPGitHubUpdater' ) || class_exists(
  * @version 1.7
  * @author Joachim Kudish <info@jkudish.com>
  * @link http://jkudish.com
- * @package WP_GitHub_Updater
+ * @package WP_GitHub_Updater_PW3
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @copyright Copyright (c) 2011-2013, Joachim Kudish
  *
@@ -32,7 +32,7 @@ if ( !defined( 'ABSPATH' ) || class_exists( 'WPGitHubUpdater' ) || class_exists(
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-class WP_GitHub_Updater
+class WP_GitHub_Updater_PW3
 {
 
     /**
@@ -78,7 +78,7 @@ class WP_GitHub_Updater
 
         $this->config = wp_parse_args( $config, $defaults );
 
-        // if the minimum config isn't set, issue a warning and bail
+        // If the minimum config isn't set, issue a warning and bail
         if ( !$this->has_minimum_config() ) {
             $message = 'The GitHub Updater was initialized without the minimum required configuration, please check the config in your plugin. The following params are missing: ';
             $message .= implode( ',', $this->missing_config );
@@ -94,10 +94,10 @@ class WP_GitHub_Updater
         add_filter( 'plugins_api', array( $this, 'get_plugin_info' ), 10, 3 );
         add_filter( 'upgrader_post_install', array( $this, 'upgrader_post_install' ), 10, 3 );
 
-        // set timeout
+        // Set timeout
         add_filter( 'http_request_timeout', array( $this, 'http_request_timeout' ) );
 
-        // set sslverify for zip download
+        // Set sslverify for zip download
         add_filter( 'http_request_args', array( $this, 'http_request_sslverify' ), 10, 2 );
     }
 
@@ -294,7 +294,7 @@ class WP_GitHub_Updater
                 $version = $matches[1];
             }
 
-            // refresh every 6 hours
+            // Refresh every 6 hours
             if ( false !== $version ) {
                 set_site_transient( md5( $this->config['slug'] ) . '_new_version', $version, 60 * 60 * 6 );
             }
@@ -335,7 +335,7 @@ class WP_GitHub_Updater
                 $tested = $matches[1];
             }
 
-            // refresh every 6 hours
+            // Refresh every 6 hours
             if ( false !== $tested ) {
                 set_site_transient( md5( $this->config['slug'] ) . '_new_tested', $tested, 60 * 60 * 6 );
             }
@@ -388,7 +388,7 @@ class WP_GitHub_Updater
 
                 $github_data = json_decode( $github_data['body'] );
 
-                // refresh every 6 hours
+                // Refresh every 6 hours
                 set_site_transient( md5( $this->config['slug'] ) . '_github_data', $github_data, 60 * 60 * 6 );
             }
 
@@ -440,7 +440,6 @@ class WP_GitHub_Updater
         } else {
             $_changelog = '';
         }
-        // return
         return ( !empty( $_changelog ) ? $_changelog : 'Could not get changelog from server.' );
 
     }
@@ -474,7 +473,7 @@ class WP_GitHub_Updater
             return $transient;
         }
 
-        // check the version and decide if it's new
+        // Check the version and decide if it's new
         $update = version_compare( $this->config['new_version'], $this->config['version'] );
 
         if ( 1 === $update ) {
