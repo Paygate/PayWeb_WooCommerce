@@ -1,3 +1,11 @@
+= 1.3.1 - Jun 12, 2020
+* Compatible with WooCommerce 4.2.0 and WordPress 5.4.2.
+* Minified style and scripts for improved performance.
+* Fixed the 'pay' link from the order-pay page and account link.
+* Add Order Transaction Query function under order menu.
+* Add PayGate Query cron function for 'pending' orders PayGate orders.
+* PayVault Bugfix for WooCommerce 4.2.0.
+
 =1.3.0 - Apr 08, 2020
 * WooCommerce 4.0 compatible.
 * PHP7.3 compatible.

@@ -3,15 +3,15 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce
  * Plugin URI: https://github.com/PayGate/PayWeb_WooCommerce
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.3.0
- * Tested: 5.4.0
+ * Version: 1.3.1
+ * Tested: 5.4.2
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
  * Developer: App Inlet (Pty) Ltd
  * Developer URI: https://www.appinlet.com/
  *
  * WC requires at least: 3.0
- * WC tested up to: 4.0
+ * WC tested up to: 4.2
  *
  * Copyright: © 2020 PayGate (Pty) Ltd.
  * License: GNU General Public License v3.0
@@ -36,6 +36,20 @@ function woocommerce_paygate_init()
     require_once plugin_basename( 'classes/paygate.class.php' );
 
     add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_paygate_gateway' );
+
+    /**
+     * Custom order action - query order status
+     * Add custom action to order actions select box
+     */
+    add_action( 'woocommerce_order_actions', array( WC_Gateway_PayGate::class, 'paygate_add_order_meta_box_action' ) );
+    add_action( 'woocommerce_order_action_wc_custom_order_action', array( WC_Gateway_PayGate::class, 'paygate_order_query_action' ) );
+    add_action( 'woocommerce_order_action_wc_custom_order_action', array( WC_Gateway_PayGate::class, 'paygate_order_query_cron' ) );
+    add_action( 'paygate_query_cron_hook', array( WC_Gateway_PayGate::class, 'paygate_order_query_cron' ) );
+
+    $nxt = wp_next_scheduled( 'paygate_query_cron_hook' );
+    if ( !wp_next_scheduled( 'paygate_query_cron_hook' ) ) {
+        wp_schedule_event( time(), 'daily', 'paygate_query_cron_hook' );
+    }
 
     require_once 'classes/updater.class.php';
 
