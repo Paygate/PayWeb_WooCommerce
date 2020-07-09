@@ -3,7 +3,7 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce
  * Plugin URI: https://github.com/PayGate/PayWeb_WooCommerce
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.3.1
+ * Version: 1.3.2
  * Tested: 5.4.2
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
@@ -11,7 +11,7 @@
  * Developer URI: https://www.appinlet.com/
  *
  * WC requires at least: 3.0
- * WC tested up to: 4.2
+ * WC tested up to: 4.3
  *
  * Copyright: © 2020 PayGate (Pty) Ltd.
  * License: GNU General Public License v3.0
@@ -31,6 +31,10 @@ function woocommerce_paygate_init()
 
     if ( !class_exists( 'WC_Payment_Gateway' ) ) {
         return;
+    }
+
+    if ( !headers_sent() && session_status() === PHP_SESSION_NONE ) {
+        session_start();
     }
 
     require_once plugin_basename( 'classes/paygate.class.php' );
@@ -66,7 +70,7 @@ function woocommerce_paygate_init()
             'homepage'           => 'https://github.com/PayGate/PayWeb_WooCommerce',
             'sslverify'          => true,
             'requires'           => '4.0',
-            'tested'             => '5.4.0',
+            'tested'             => '5.4.2',
             'readme'             => 'README.md',
             'access_token'       => '',
         );
