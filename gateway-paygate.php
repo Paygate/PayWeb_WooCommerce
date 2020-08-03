@@ -3,7 +3,7 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce
  * Plugin URI: https://github.com/PayGate/PayWeb_WooCommerce
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.3.2
+ * Version: 1.4.0
  * Tested: 5.4.2
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
@@ -18,50 +18,59 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-add_action( 'plugins_loaded', 'woocommerce_paygate_init', 0 );
+add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
 
 /**
  * Initialize the gateway.
  *
  * @since 1.0.0
+ * @noinspection PhpUnused
  */
 
 function woocommerce_paygate_init()
 {
-
-    if ( !class_exists( 'WC_Payment_Gateway' ) ) {
+    if ( ! class_exists('WC_Payment_Gateway')) {
         return;
     }
 
-    if ( !headers_sent() && session_status() === PHP_SESSION_NONE ) {
+    if ( ! headers_sent() && session_status() === PHP_SESSION_NONE) {
         session_start();
     }
 
-    require_once plugin_basename( 'classes/paygate.class.php' );
+    require_once plugin_basename('classes/WC_Gateway_PayGate.php');
 
-    add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_paygate_gateway' );
+    add_filter('woocommerce_payment_gateways', 'woocommerce_add_paygate_gateway');
 
     /**
      * Custom order action - query order status
      * Add custom action to order actions select box
      */
-    add_action( 'woocommerce_order_actions', array( WC_Gateway_PayGate::class, 'paygate_add_order_meta_box_action' ) );
-    add_action( 'woocommerce_order_action_wc_custom_order_action', array( WC_Gateway_PayGate::class, 'paygate_order_query_action' ) );
-    add_action( 'woocommerce_order_action_wc_custom_order_action', array( WC_Gateway_PayGate::class, 'paygate_order_query_cron' ) );
-    add_action( 'paygate_query_cron_hook', array( WC_Gateway_PayGate::class, 'paygate_order_query_cron' ) );
+    add_action(
+        'woocommerce_order_actions',
+        array(WC_Gateway_PayGate_Admin_Actions::class, 'paygate_add_order_meta_box_action')
+    );
+    add_action(
+        'woocommerce_order_action_wc_custom_order_action',
+        array(WC_Gateway_PayGate_Admin_Actions::class, 'paygate_order_query_action')
+    );
+    add_action(
+        'woocommerce_order_action_wc_custom_order_action',
+        array(WC_Gateway_PayGate_Portal::class, 'paygate_order_query_cron')
+    );
+    add_action('paygate_query_cron_hook', array(WC_Gateway_PayGate::class, 'paygate_order_query_cron'));
 
-    $nxt = wp_next_scheduled( 'paygate_query_cron_hook' );
-    if ( !wp_next_scheduled( 'paygate_query_cron_hook' ) ) {
-        wp_schedule_event( time(), 'daily', 'paygate_query_cron_hook' );
+    $nxt = wp_next_scheduled('paygate_query_cron_hook');
+    if ( ! wp_next_scheduled('paygate_query_cron_hook')) {
+        wp_schedule_event(time(), 'daily', 'paygate_query_cron_hook');
     }
 
     require_once 'classes/updater.class.php';
 
-    if ( is_admin() ) {
+    if (is_admin()) {
         // Note the use of is_admin() to double check that this is happening in the admin
 
         $config = array(
-            'slug'               => plugin_basename( __FILE__ ),
+            'slug'               => plugin_basename(__FILE__),
             'proper_folder_name' => 'woocommerce-gateway-paygate-pw3',
             'api_url'            => 'https://api.github.com/repos/PayGate/PayWeb_WooCommerce',
             'raw_url'            => 'https://raw.github.com/PayGate/PayWeb_WooCommerce/master',
@@ -75,23 +84,24 @@ function woocommerce_paygate_init()
             'access_token'       => '',
         );
 
-        new WP_GitHub_Updater_PW3( $config );
+        $wpGitHubUpdater = new WP_GitHub_Updater_PW3($config);
 
+        $wpGitHubUpdater->add_filters();
     }
-
 } // End woocommerce_paygate_init()
 
 /**
  * Add the gateway to WooCommerce
  *
+ * @param $methods
+ *
+ * @return mixed
  * @since 1.0.0
  */
 
-function woocommerce_add_paygate_gateway( $methods )
+function woocommerce_add_paygate_gateway($methods)
 {
-
     $methods[] = 'WC_Gateway_PayGate';
 
     return $methods;
-
 } // End woocommerce_add_paygate_gateway()
