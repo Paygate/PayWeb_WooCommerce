@@ -48,6 +48,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const REDIRECT                            = 'redirect';
     const IFRAME                              = 'iframe';
     const DISABLENOTIFY                       = 'disablenotify';
+    const ALTERNATECARTHANDLING               = 'alternatecarthandling';
     const TRANSACTION_STATUS                  = 'TRANSACTION_STATUS';
     const RESULT_CODE                         = 'RESULT_CODE';
     const RESULT_DESC                         = 'RESULT_DESC';
@@ -343,6 +344,16 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
+            self::ALTERNATECARTHANDLING => array(
+                self::TITLE         => __('Alternate Cart Handling', self::ID),
+                self::TYPE          => self::CHECKBOX,
+                self::DESCRIPTION   => __(
+                    'Enable this if your cart is not cleared upon successful transaction.',
+                    self::ID
+                ),
+                self::DESC_TIP      => true,
+                self::DEFAULT_CONST => 'no',
+            ),
             self::DESCRIPTION           => array(
                 self::TITLE         => __('Description', self::ID),
                 self::TYPE          => 'textarea',
@@ -578,10 +589,13 @@ HTML;
      */
     public function get_ajax_return_data_json($order_id)
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if (session_status() !== PHP_SESSION_NONE) {
+            $_SESSION['POST'] = $_POST;
         }
-        $_SESSION['POST'] = $_POST;
+
+        if ($this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
+            WC()->cart->empty_cart();
+        }
 
         $initiate     = new WC_Gateway_PayGate_Portal();
         $returnParams = $initiate->initiate_transaction($order_id);
