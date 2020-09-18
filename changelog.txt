@@ -1,3 +1,7 @@
+= 1.4.1 - Sep 18, 2020
+* Add alternate cart handling if cart is not cleared upon successful transaction.
+* Compatibility with WordPress 5.5.1.
+
 = 1.4.0 - Aug 03, 2020
 * Tested with WooCommerce 4.3.1.
 * Add payment types selection on checkout (SiD, eWallet etc.)

@@ -176,6 +176,10 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
         $order           = new WC_Order($order_id);
         $parsed_response = $this->initiate_transaction($order_id);
 
+        if ($this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
+            WC()->cart->empty_cart();
+        }
+
         if ( ! is_wp_error($parsed_response)) {
             unset($parsed_response[self::CHECKSUM]);
             $checksum = md5(implode('', $parsed_response) . $this->encryption_key);
@@ -489,6 +493,19 @@ RT;
      */
     protected function processOrderFinal($status, $order, $transaction_id, $result_desc, $pay_request_id)
     {
+        if ($this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
+            // Alternative cart mechanism
+            if (count($order->get_items()) > 0) {
+                foreach ($order->get_items() as $product) {
+                    $product_id   = isset($product['product_id']) ? (int)$product['product_id'] : 0;
+                    $quantity     = isset($product['quantity']) ? (int)$product['quantity'] : 1;
+                    $variation_id = isset($product['variation_id']) ? (int)$product['variation_id'] : 0;
+                    $variation    = isset($product['variation']) ? (array)$product['variation'] : array();
+                    WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation);
+                }
+                WC()->cart->calculate_totals();
+            }
+        }
         switch ($status) {
             case 1:
                 $this->processOrderFinalSuccess($order, $transaction_id, $pay_request_id);
