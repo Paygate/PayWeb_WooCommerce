@@ -1,3 +1,13 @@
+= 1.4.2 - Jan 18, 2021
+* Tested on WooCommerce 4.9 and Wordpress 5.6.
+* Fix an issue where PayVault did not work while Payment Type selection was active.
+* Remove iFrame support.
+* Add PayGate Plus logo option.
+* Switch to SVG payment logo.
+* Tweak order notes and default gateway title.
+* Alternative WC notices handling.
+* Add more information to logging when enabled.
+
 = 1.4.1 - Sep 18, 2020
 * Add alternate cart handling if cart is not cleared upon successful transaction.
 * Compatibility with WordPress 5.5.1.
@@ -5,7 +15,7 @@
 = 1.4.0 - Aug 03, 2020
 * Tested with WooCommerce 4.3.1.
 * Add payment types selection on checkout (SiD, eWallet etc.)
-* Add custom order meta to payment reference. 
+* Add custom order meta to payment reference.
 * Improved error messaging.
 * Fix an issue where the cart was not cleared on some configurations.
 * Fix SQL syntax error in PayWeb query cron.
