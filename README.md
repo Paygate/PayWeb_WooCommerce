@@ -6,7 +6,7 @@ This is the PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact 
 ## Installation
 [![How To Setup PayGate PayWeb for WooCommerce](https://www.appinlet.com/wp-content/uploads/2018/09/WooCommerce-Integration.jpg)](https://www.youtube.com/watch?v=MMcEG7FmoEM "How To Setup PayGate PayWeb for WooCommerce")
 
-Please navigate to the [releases page](https://github.com/PayGate/PayWeb_WooCommerce/releases), download the latest release (v1.4.2) and unzip. You will them be able to follow the integration guide PDF which is included in the zip.
+Please navigate to the [releases page](https://github.com/PayGate/PayWeb_WooCommerce/releases), download the latest release (v1.4.2) and unzip. You will then be able to follow the integration guide PDF which is included in the zip.
 
 ## Collaboration
 
