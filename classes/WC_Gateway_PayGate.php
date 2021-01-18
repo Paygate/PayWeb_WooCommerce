@@ -44,9 +44,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const CHECKBOX                            = 'checkbox';
     const DESC_TIP                            = 'desc_tip';
     const DEFAULT_CONST                       = 'default';
-    const PAYMENT_TYPE                        = 'payment_type';
     const REDIRECT                            = 'redirect';
-    const IFRAME                              = 'iframe';
     const DISABLENOTIFY                       = 'disablenotify';
     const ALTERNATECARTHANDLING               = 'alternatecarthandling';
     const TRANSACTION_STATUS                  = 'TRANSACTION_STATUS';
@@ -114,6 +112,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const ORDER_META_REFERENCE                = 'order_meta_reference';
     const ORDER_META_REFERENCE_DESCRIPTION    = 'Order Meta Reference';
     const ORDER_META_REFERENCE_PLACEHOLDER    = 'Add order meta to the payment reference using a meta key (e.g. _billing_first_name)';
+    const LOGGING = 'logging';
 
     public $version = '4.0.0';
 
@@ -162,14 +161,24 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
     protected $order_meta_reference = '';
 
+    /**
+     * @var WC_Logger
+     */
+    public static $wc_logger;
+
+    /**
+     * @var bool
+     */
+    public $logging = false;
+
     public function __construct()
     {
         // Load the settings
         $this->init_form_fields();
         $this->init_settings();
-        if ($this->settings[self::TESTMODE] == 'no') {
-            $this->merchant_id    = $this->settings[self::PAYGATE_ID_LOWER_CASE];
-            $this->encryption_key = $this->settings[self::ENCRYPTION_KEY];
+        if (isset($this->settings[self::TESTMODE]) && $this->settings[self::TESTMODE] == 'no') {
+            $this->merchant_id    = isset($this->settings[self::PAYGATE_ID_LOWER_CASE]) ? $this->settings[self::PAYGATE_ID_LOWER_CASE] : '';
+            $this->encryption_key = isset($this->settings[self::ENCRYPTION_KEY]) ? $this->settings[self::ENCRYPTION_KEY] : '';
         } else {
             $this->form_fields = WC_Gateway_PayGate_Admin_Actions::add_testmode_admin_settings_notice(
                 $this->form_fields
@@ -177,29 +186,57 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             $this->post        = $_POST;
         }
 
+        $wcsession = WC()->session;
+
+        if(self::$wc_logger === null){
+            self::$wc_logger = wc_get_logger();
+        }
+
+        if(isset($this->settings[self::LOGGING]) && $this->settings[self::LOGGING] === 'yes') {
+            $this->logging = true;
+        }
+
         if ( ! empty($_POST)) {
             if (isset($_POST[self::NEW_PAYMENT_METHOD_SESSION])) {
-                $_SESSION[self::NEW_PAYMENT_METHOD_SESSION] = '1';
+                if ($wcsession) {
+                    $wcsession->set(self::NEW_PAYMENT_METHOD_SESSION, '1');
+                }
             } else {
-                $_SESSION[self::NEW_PAYMENT_METHOD_SESSION] = '0';
+                if ($wcsession) {
+                    $wcsession->set(self::NEW_PAYMENT_METHOD_SESSION, '0');
+                }
             }
 
             if (isset($_POST[self::PAYGATE_PAYMENT_TOKEN])) {
-                $_SESSION[self::PAYGATE_PAYMENT_TOKEN] = filter_var(
+                if ($wcsession) {
+                    $wcsession->set(
+                        self::PAYGATE_PAYMENT_TOKEN,
+                        filter_var(
                     $_POST[self::PAYGATE_PAYMENT_TOKEN],
                     FILTER_SANITIZE_STRING
+                        )
                 );
+                }
             } else {
-                unset($_SESSION[self::PAYGATE_PAYMENT_TOKEN]);
+                if ($wcsession) {
+                    $wcsession->__unset(self::PAYGATE_PAYMENT_TOKEN);
+                }
             }
 
             if (isset($_POST[self::SUB_PAYMENT_METHOD])) {
-                $_SESSION[self::SUB_PAYMENT_METHOD] = filter_var(
+                if ($wcsession) {
+                    $wcsession->set(
+                        self::SUB_PAYMENT_METHOD,
+                        filter_var(
                     $_POST[self::SUB_PAYMENT_METHOD],
                     FILTER_SANITIZE_STRING
+                        )
                 );
+                }
             } else {
-                unset($_SESSION[self::SUB_PAYMENT_METHOD]);
+                if ($wcsession) {
+                    $wcsession->__unset(self::SUB_PAYMENT_METHOD);
+                }
             }
         }
 
@@ -208,17 +245,20 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             'PayGate via PayWeb3 works by sending the customer to PayGate to complete their payment.',
             self::ID
         );
-        $this->icon               = $this->get_plugin_url() . '/assets/images/logo_small.png';
+        $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_logo.svg';
+        if(isset($this->settings['paygateplus']) && $this->settings['paygateplus'] === 'yes') {
+            $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_Plus_logo.svg';
+        }
         $this->has_fields         = true;
         $this->supports           = array(
             'products',
         );
 
         // Define user set variables
-        $this->title             = $this->settings[self::TITLE];
-        $this->order_button_text = $this->settings['button_text'];
-        $this->description       = $this->settings[self::DESCRIPTION];
-        $this->payVault          = $this->settings['payvault'];
+        $this->title             = isset($this->settings[self::TITLE]) ? $this->settings[self::TITLE] : '';
+        $this->order_button_text = isset($this->settings['button_text']) ? $this->settings['button_text'] : '';
+        $this->description       = isset($this->settings['button_text']) ? $this->settings[self::DESCRIPTION] : '';
+        $this->payVault          = isset($this->settings['payvault']) ? $this->settings['payvault'] : '';
 
         if ($this->payVault == 'yes') {
             $this->supports[] = 'tokenization';
@@ -230,13 +270,59 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->notify_url   = add_query_arg('wc-api', 'WC_Gateway_PayGate_Notify', home_url('/'));
         $this->redirect_url = add_query_arg('wc-api', 'WC_Gateway_PayGate_Redirect', home_url('/'));
 
-        $order_meta_reference = $this->settings[self::ORDER_META_REFERENCE];
+        $order_meta_reference = isset($this->settings[self::ORDER_META_REFERENCE]) ? $this->settings[self::ORDER_META_REFERENCE] : '';
         if (strlen($order_meta_reference) > 0) {
             $this->order_meta_reference = $order_meta_reference;
         }
 
         $this->addActions();
         $this->setCardMethods();
+    }
+
+    /**
+     * Custom function added to overcome notice failures in recent versions
+     *
+     * @param false $return
+     * @return string|void
+     */
+    protected function custom_print_notices($return = false)
+    {
+        if ( ! did_action( 'woocommerce_init' ) ) {
+            wc_doing_it_wrong( __FUNCTION__, __( 'This function should not be called before woocommerce_init.', 'woocommerce' ), '2.3' );
+            return;
+        }
+
+        $all_notices  = WC()->session->get( 'wc_notices', array() );
+        $notice_types = apply_filters( 'woocommerce_notice_types', array( 'error', 'success', 'notice' ) );
+
+        // Buffer output.
+        ob_start();
+
+        foreach ( $notice_types as $notice_type ) {
+            if ( wc_notice_count( $notice_type ) > 0 ) {
+                $messages = array();
+
+                foreach ( $all_notices[ $notice_type ] as $notice ) {
+                    $messages[] = isset( $notice['notice'] ) ? $notice['notice'] : $notice;
+                }
+
+                wc_get_template(
+                    "notices/{$notice_type}.php",
+                    array(
+                        'messages' => array_filter( $messages ), // @deprecated 3.9.0
+                        'notices'  => array_filter( $all_notices[ $notice_type ] ),
+                    )
+                );
+            }
+        }
+
+        $notices = wc_kses_notice( ob_get_clean() );
+
+        if ( $return ) {
+            return $notices;
+        }
+
+        echo $notices;
     }
 
     /**
@@ -303,7 +389,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::TYPE          => 'text',
                 self::DESCRIPTION   => __('This controls the title which the user sees during checkout.', self::ID),
                 self::DESC_TIP      => false,
-                self::DEFAULT_CONST => __('PayGate Payment Gateway', self::ID),
+                self::DEFAULT_CONST => __('PayGate', self::ID),
             ),
             self::PAYGATE_ID_LOWER_CASE => array(
                 self::TITLE         => __('PayGate ID', self::ID),
@@ -319,23 +405,19 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => '',
             ),
-            self::PAYMENT_TYPE          => array(
-                self::TITLE         => __('Implementation', self::ID),
-                self::LABEL         => __('Choose payment type', self::ID),
-                self::TYPE          => 'select',
-                self::DESCRIPTION   => 'Changes the display implementation - Redirect or iFrame.',
-                self::DEFAULT_CONST => self::REDIRECT,
-                'options'           => array(
-                    self::REDIRECT => 'Redirect',
-                    self::IFRAME   => 'iFrame',
-                ),
-            ),
             self::TESTMODE              => array(
                 self::TITLE         => __('Test mode', self::ID),
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __('Uses a PayGate test account. Request test cards from PayGate', self::ID),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'yes',
+            ),
+            self::LOGGING              => array(
+                self::TITLE         => __('Enable Logging', self::ID),
+                self::TYPE          => self::CHECKBOX,
+                self::DESCRIPTION   => __('Enable WooCommerce Logging', self::ID),
+                self::DESC_TIP      => true,
+                self::DEFAULT_CONST => 'no',
             ),
             self::DISABLENOTIFY         => array(
                 self::TITLE         => __('Disable IPN', self::ID),
@@ -375,6 +457,17 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::LABEL         => self::PAYVAULT . self::MUST_BE_ENABLED,
                 self::DESCRIPTION   => __(
                     'Provides the ability for users to store their credit card details.',
+                    self::ID
+                ),
+                self::DESC_TIP      => true,
+                self::DEFAULT_CONST => 'no',
+            ),
+            'paygateplus'                  => array(
+                self::TITLE         => __('Use PayGate Plus logo', self::ID),
+                self::TYPE          => self::CHECKBOX,
+                self::LABEL         => 'Enable the PayGate Plus logo',
+                self::DESCRIPTION   => __(
+                    'Check to use the PayGate Plus logo rather than the default PayGate logo',
                     self::ID
                 ),
                 self::DESC_TIP      => true,
@@ -556,6 +649,18 @@ HTML;
     }
 
     /**
+     * get_icon
+     *
+     * Add SVG icon to checkout
+     */
+    public function get_icon()
+    {
+        $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url( $this->icon ) ) . '" alt="' . esc_attr( $this->get_title() ) . '" style="width: auto !important; height: 25px !important; max-width: 100px; border: none !important;">';
+
+        return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
+    }
+
+    /**
      * Process the payment and return the result.
      *
      * @param int $order_id
@@ -566,10 +671,6 @@ HTML;
      */
     public function process_payment($order_id)
     {
-        if ($this->settings[self::PAYMENT_TYPE] === self::IFRAME) {
-            echo $this->get_ajax_return_data_json($order_id);
-            die;
-        } else {
             $order = new WC_Order($order_id);
 
             return [
@@ -577,7 +678,6 @@ HTML;
                 self::REDIRECT => $order->get_checkout_payment_url(true),
             ];
         }
-    }
 
     /**
      * Process the payment and return the result.
@@ -589,11 +689,11 @@ HTML;
      */
     public function get_ajax_return_data_json($order_id)
     {
-        if (session_status() !== PHP_SESSION_NONE) {
-            $_SESSION['POST'] = $_POST;
+        if ($wcsession = WC()->session) {
+            $wcsession->set('POST', $_POST);
         }
 
-        if ($this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
+        if (isset($this->settings[self::ALTERNATECARTHANDLING]) && $this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
             WC()->cart->empty_cart();
         }
 
@@ -637,15 +737,6 @@ HTML;
      */
     public function paygate_payment_scripts()
     {
-        if ($this->settings[self::PAYMENT_TYPE] === self::IFRAME) {
-            wp_enqueue_script(
-                self::PAYGATE_CHECKOUT_JS,
-                $this->get_plugin_url() . '/assets/js/paygate_checkout.js',
-                array(),
-                WC_VERSION,
-                true
-            );
-        }
         wp_enqueue_style(
             'paygate-checkout-css',
             $this->get_plugin_url() . '/assets/css/paygate_checkout.css',
@@ -691,11 +782,9 @@ HTML;
     public function receipt_page($order_id)
     {
         $receipt = new WC_Gateway_PayGate_Portal();
-        if ($this->settings[self::PAYMENT_TYPE] !== self::IFRAME) {
             // Do redirect
             echo $receipt->generate_paygate_form($order_id);
         }
-    }
 
     /**
      * Add WooCommerce notice
@@ -708,6 +797,18 @@ HTML;
     public function add_notice($message, $notice_type = 'success')
     {
         global $woocommerce;
+
+        if($wc_session = WC()->session) {
+            $notices = $wc_session->get('wc_notices');
+            if(self::$wc_logger) {
+                self::$wc_logger->add('paygatepayweb', 'Session notices: ' . json_encode($notices));
+            }
+        } else {
+            if(self::$wc_logger) {
+                self::$wc_logger->add('paygatepayweb', 'Session not set ');
+            }
+        }
+
         // If function should we use?
         if (function_exists("wc_add_notice")) {
             // Use the new version of the add_error method
@@ -715,6 +816,17 @@ HTML;
         } else {
             // Use the old version
             $woocommerce->add_error($message);
+        }
+
+        if($wc_session = WC()->session) {
+            $notices = $wc_session->get('wc_notices');
+            if(self::$wc_logger) {
+                self::$wc_logger->add('paygatepayweb', 'Session notices after: ' . json_encode($notices));
+            }
+        } else {
+            if(self::$wc_logger) {
+                self::$wc_logger->add('paygatepayweb', 'Session not set ');
+            }
         }
     }
 
