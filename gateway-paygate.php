@@ -3,15 +3,15 @@
  * Plugin Name: PayGate PayWeb3 plugin for WooCommerce
  * Plugin URI: https://github.com/PayGate/PayWeb_WooCommerce
  * Description: Accept payments for WooCommerce using PayGate's PayWeb3 service
- * Version: 1.4.2
- * Tested: 5.6.0
+ * Version: 1.4.3
+ * Tested: 5.7.2
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
  * Developer: App Inlet (Pty) Ltd
  * Developer URI: https://www.appinlet.com/
  *
  * WC requires at least: 3.0
- * WC tested up to: 4.9
+ * WC tested up to: 5.3
  *
  * Copyright: © 2021 PayGate (Pty) Ltd.
  * License: GNU General Public License v3.0
@@ -53,12 +53,15 @@ function woocommerce_paygate_init()
         'woocommerce_order_action_wc_custom_order_action',
         array(WC_Gateway_PayGate_Portal::class, 'paygate_order_query_cron')
     );
-    add_action('paygate_query_cron_hook', array(WC_Gateway_PayGate::class, 'paygate_order_query_cron'));
+    add_action('paygate_query_cron_hook', array(WC_Gateway_PayGate_Cron::class, 'paygate_order_query_cron'));
 
     $nxt = wp_next_scheduled('paygate_query_cron_hook');
     if ( ! wp_next_scheduled('paygate_query_cron_hook')) {
-        wp_schedule_event(time(), 'daily', 'paygate_query_cron_hook');
+        wp_schedule_event(time(), 'hourly', 'paygate_query_cron_hook');
     }
+
+    add_action('woocommerce_before_cart', array(WC_Gateway_PayGate::class, 'show_cart_messages'), 10, 1);
+
 
     require_once 'classes/updater.class.php';
 
@@ -83,6 +86,7 @@ function woocommerce_paygate_init()
         $wpGitHubUpdater = new WP_GitHub_Updater_PW3($config);
 
         $wpGitHubUpdater->add_filters();
+
     }
 } // End woocommerce_paygate_init()
 

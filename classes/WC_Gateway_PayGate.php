@@ -87,12 +87,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const CREDIT_CARD                         = 'pw3_credit_card';
     const BANK_TRANSFER                       = 'pw3_bank_transfer';
     const ZAPPER                              = 'pw3_e_zapper';
+    const SNAPSCAN                            = 'pw3_e_snapscan';
     const MOBICRED                            = 'pw3_e_mobicred';
     const MOMOPAY                             = 'pw3_e_momopay';
     const MASTERPASS                          = 'pw3_e_masterpass';
     const CREDIT_CARD_METHOD                  = 'CC';
     const BANK_TRANSFER_METHOD                = 'BT';
     const ZAPPER_METHOD                       = 'EW-ZAPPER';
+    const SNAPSCAN_METHOD                     = 'EW-SNAPSCAN';
     const MOBICRED_METHOD                     = 'EW-MOBICRED';
     const MOMOPAY_METHOD                      = 'EW-MOMOPAY';
     const MASTERPASS_METHOD                   = 'EW-MASTERPASS';
@@ -100,6 +102,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const BANK_TRANSFER_DESCRIPTION           = 'SiD Secure EFT';
     const BANK_TRANSFER_METHOD_DETAIL         = 'SID';
     const ZAPPER_DESCRIPTION                  = 'Zapper';
+    const SNAPSCAN_DESCRIPTION                = 'SnapScan';
     const MOBICRED_DESCRIPTION                = 'Mobicred';
     const MOMOPAY_DESCRIPTION                 = 'MoMoPay';
     const MOMOPAY_METHOD_DETAIL               = 'Momopay';
@@ -112,7 +115,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const ORDER_META_REFERENCE                = 'order_meta_reference';
     const ORDER_META_REFERENCE_DESCRIPTION    = 'Order Meta Reference';
     const ORDER_META_REFERENCE_PLACEHOLDER    = 'Add order meta to the payment reference using a meta key (e.g. _billing_first_name)';
-    const LOGGING = 'logging';
+    const LOGGING                             = 'logging';
 
     public $version = '4.0.0';
 
@@ -151,6 +154,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         self::CREDIT_CARD_METHOD   => self::CREDIT_CARD_DESCRIPTION,
         self::BANK_TRANSFER_METHOD => self::BANK_TRANSFER_METHOD_DETAIL,
         self::ZAPPER_METHOD        => self::ZAPPER_DESCRIPTION,
+        self::SNAPSCAN_METHOD      => self::SNAPSCAN_DESCRIPTION,
         self::MOBICRED_METHOD      => self::MOBICRED_DESCRIPTION,
         self::MOMOPAY_METHOD       => self::MOMOPAY_METHOD_DETAIL,
         self::MASTERPASS_METHOD    => self::MASTERPASS_DESCRIPTION,
@@ -188,11 +192,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         $wcsession = WC()->session;
 
-        if(self::$wc_logger === null){
+        if (self::$wc_logger === null) {
             self::$wc_logger = wc_get_logger();
         }
 
-        if(isset($this->settings[self::LOGGING]) && $this->settings[self::LOGGING] === 'yes') {
+        if (isset($this->settings[self::LOGGING]) && $this->settings[self::LOGGING] === 'yes') {
             $this->logging = true;
         }
 
@@ -212,10 +216,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                     $wcsession->set(
                         self::PAYGATE_PAYMENT_TOKEN,
                         filter_var(
-                    $_POST[self::PAYGATE_PAYMENT_TOKEN],
-                    FILTER_SANITIZE_STRING
+                            $_POST[self::PAYGATE_PAYMENT_TOKEN],
+                            FILTER_SANITIZE_STRING
                         )
-                );
+                    );
                 }
             } else {
                 if ($wcsession) {
@@ -228,10 +232,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                     $wcsession->set(
                         self::SUB_PAYMENT_METHOD,
                         filter_var(
-                    $_POST[self::SUB_PAYMENT_METHOD],
-                    FILTER_SANITIZE_STRING
+                            $_POST[self::SUB_PAYMENT_METHOD],
+                            FILTER_SANITIZE_STRING
                         )
-                );
+                    );
                 }
             } else {
                 if ($wcsession) {
@@ -246,11 +250,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             self::ID
         );
         $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_logo.svg';
-        if(isset($this->settings['paygateplus']) && $this->settings['paygateplus'] === 'yes') {
-            $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_Plus_logo.svg';
+        if (isset($this->settings['paygateplus']) && $this->settings['paygateplus'] === 'yes') {
+            $this->icon = $this->get_plugin_url() . '/assets/images/PayGate_Plus_logo.svg';
         }
-        $this->has_fields         = true;
-        $this->supports           = array(
+        $this->has_fields = true;
+        $this->supports   = array(
             'products',
         );
 
@@ -279,46 +283,63 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->setCardMethods();
     }
 
+    public static function show_cart_messages($messages)
+    {
+        if (isset($_GET['order_id'])) {
+            $order_id      = filter_var($_GET['order_id'], FILTER_SANITIZE_NUMBER_INT);
+            $orderMessages = get_post_meta($order_id, 'paygate_error');
+            $orderMessage  = $orderMessages[count($orderMessages) - 1];
+
+            echo '<h3 style="color: red;">' . $orderMessage . '</h3>';
+        }
+    }
+
     /**
      * Custom function added to overcome notice failures in recent versions
      *
      * @param false $return
+     *
      * @return string|void
      */
     protected function custom_print_notices($return = false)
     {
-        if ( ! did_action( 'woocommerce_init' ) ) {
-            wc_doing_it_wrong( __FUNCTION__, __( 'This function should not be called before woocommerce_init.', 'woocommerce' ), '2.3' );
+        if ( ! did_action('woocommerce_init')) {
+            wc_doing_it_wrong(
+                __FUNCTION__,
+                __('This function should not be called before woocommerce_init.', 'woocommerce'),
+                '2.3'
+            );
+
             return;
         }
 
-        $all_notices  = WC()->session->get( 'wc_notices', array() );
-        $notice_types = apply_filters( 'woocommerce_notice_types', array( 'error', 'success', 'notice' ) );
+        $all_notices  = WC()->session->get('wc_notices', array());
+        $notice_types = apply_filters('woocommerce_notice_types', array('error', 'success', 'notice'));
 
         // Buffer output.
         ob_start();
 
-        foreach ( $notice_types as $notice_type ) {
-            if ( wc_notice_count( $notice_type ) > 0 ) {
+        foreach ($notice_types as $notice_type) {
+            if (wc_notice_count($notice_type) > 0) {
                 $messages = array();
 
-                foreach ( $all_notices[ $notice_type ] as $notice ) {
-                    $messages[] = isset( $notice['notice'] ) ? $notice['notice'] : $notice;
+                foreach ($all_notices[$notice_type] as $notice) {
+                    $messages[] = isset($notice['notice']) ? $notice['notice'] : $notice;
                 }
 
                 wc_get_template(
                     "notices/{$notice_type}.php",
                     array(
-                        'messages' => array_filter( $messages ), // @deprecated 3.9.0
-                        'notices'  => array_filter( $all_notices[ $notice_type ] ),
+                        'messages' => array_filter($messages), // @deprecated 3.9.0
+                        'notices'  => array_filter($all_notices[$notice_type]),
                     )
                 );
             }
         }
 
-        $notices = wc_kses_notice( ob_get_clean() );
+        $notices = wc_kses_notice(ob_get_clean());
 
-        if ( $return ) {
+        if ($return) {
             return $notices;
         }
 
@@ -412,7 +433,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'yes',
             ),
-            self::LOGGING              => array(
+            self::LOGGING               => array(
                 self::TITLE         => __('Enable Logging', self::ID),
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __('Enable WooCommerce Logging', self::ID),
@@ -462,7 +483,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            'paygateplus'                  => array(
+            'paygateplus'               => array(
                 self::TITLE         => __('Use PayGate Plus logo', self::ID),
                 self::TYPE          => self::CHECKBOX,
                 self::LABEL         => 'Enable the PayGate Plus logo',
@@ -492,6 +513,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             self::ZAPPER                => array(
                 self::TITLE         => __(self::ENABLE . self::ZAPPER_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::ZAPPER_DESCRIPTION . self::MUST_BE_ENABLED,
+                self::TYPE          => self::CHECKBOX,
+                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESC_TIP      => true,
+                self::DEFAULT_CONST => 'no',
+            ),
+            self::SNAPSCAN              => array(
+                self::TITLE         => __(self::ENABLE . self::SNAPSCAN_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::LABEL         => self::SNAPSCAN_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
                 self::DESC_TIP      => true,
@@ -563,7 +592,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 '</a>'
             ); ?></p>
 
-        <table class="form-table">
+        <table class="form-table" aria-describedby="paygate">
             <th scope="col">PayGate Settings</th>
             <?php
             $this->generate_settings_html(); // Generate the HTML For the settings form.
@@ -655,9 +684,11 @@ HTML;
      */
     public function get_icon()
     {
-        $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url( $this->icon ) ) . '" alt="' . esc_attr( $this->get_title() ) . '" style="width: auto !important; height: 25px !important; max-width: 100px; border: none !important;">';
+        $icon = '<img src="' . esc_url(WC_HTTPS::force_https_url($this->icon)) . '" alt="' . esc_attr(
+                $this->get_title()
+            ) . '" style="width: auto !important; height: 25px !important; max-width: 100px; border: none !important;">';
 
-        return apply_filters( 'woocommerce_gateway_icon', $icon, $this->id );
+        return apply_filters('woocommerce_gateway_icon', $icon, $this->id);
     }
 
     /**
@@ -671,13 +702,13 @@ HTML;
      */
     public function process_payment($order_id)
     {
-            $order = new WC_Order($order_id);
+        $order = new WC_Order($order_id);
 
-            return [
-                'result'       => 'success',
-                self::REDIRECT => $order->get_checkout_payment_url(true),
-            ];
-        }
+        return [
+            'result'       => 'success',
+            self::REDIRECT => $order->get_checkout_payment_url(true),
+        ];
+    }
 
     /**
      * Process the payment and return the result.
@@ -782,9 +813,9 @@ HTML;
     public function receipt_page($order_id)
     {
         $receipt = new WC_Gateway_PayGate_Portal();
-            // Do redirect
-            echo $receipt->generate_paygate_form($order_id);
-        }
+        // Do redirect
+        echo $receipt->generate_paygate_form($order_id);
+    }
 
     /**
      * Add WooCommerce notice
@@ -794,17 +825,25 @@ HTML;
      *
      * @since 1.0.0
      */
-    public function add_notice($message, $notice_type = 'success')
+    public function add_notice($message, $notice_type = 'success', $order_id = '')
     {
         global $woocommerce;
 
-        if($wc_session = WC()->session) {
+        if ($order_id != '') {
+            add_post_meta($order_id, 'paygate_error', $message);
+        }
+
+        self::$wc_logger->add('paygatepayweb', 'In add notice: ' . json_encode($message));
+
+        if ($wc_session = WC()->session) {
+            $wc_session->set('payweb3_error_message', $message);
             $notices = $wc_session->get('wc_notices');
-            if(self::$wc_logger) {
+            if (self::$wc_logger) {
                 self::$wc_logger->add('paygatepayweb', 'Session notices: ' . json_encode($notices));
+                self::$wc_logger->add('paygatepayweb', 'Session : ' . json_encode($wc_session));
             }
         } else {
-            if(self::$wc_logger) {
+            if (self::$wc_logger) {
                 self::$wc_logger->add('paygatepayweb', 'Session not set ');
             }
         }
@@ -816,17 +855,6 @@ HTML;
         } else {
             // Use the old version
             $woocommerce->add_error($message);
-        }
-
-        if($wc_session = WC()->session) {
-            $notices = $wc_session->get('wc_notices');
-            if(self::$wc_logger) {
-                self::$wc_logger->add('paygatepayweb', 'Session notices after: ' . json_encode($notices));
-            }
-        } else {
-            if(self::$wc_logger) {
-                self::$wc_logger->add('paygatepayweb', 'Session not set ');
-            }
         }
     }
 
@@ -850,6 +878,11 @@ HTML;
                 'description' => self::ZAPPER_DESCRIPTION,
                 'value'       => $this->settings[self::ZAPPER] == 'yes' ? self::ZAPPER_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/zapper.svg',
+            );
+            $this->pw3_card_methods['snapscan']      = array(
+                'description' => self::SNAPSCAN_DESCRIPTION,
+                'value'       => $this->settings[self::SNAPSCAN] == 'yes' ? self::SNAPSCAN_METHOD : '',
+                'image'       => $this->get_plugin_url() . '/assets/images/snapscan.svg',
             );
             $this->pw3_card_methods['mobicred']      = array(
                 'description' => self::MOBICRED_DESCRIPTION,
@@ -935,7 +968,7 @@ HTML;
      *
      * @return array|object|null
      */
-    protected function getOrderNotes($order_id)
+    protected static function getOrderNotes($order_id)
     {
         global $wpdb;
 
@@ -990,5 +1023,4 @@ HTML;
                 </select>
 HTML;
     }
-
 }

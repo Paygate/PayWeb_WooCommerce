@@ -11,7 +11,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
 {
     protected $error_desc = 'Checksum validation error.';
 
-    protected static function getPayRequestIdNotes($notes)
+    public static function getPayRequestIdNotes($notes)
     {
         $payRequestId = '';
         foreach ($notes as $note) {
@@ -248,6 +248,7 @@ HTML;
      */
     public function check_paygate_response()
     {
+        $this->logging ? self::$wc_logger->add('paygatepayweb', 'Redirect POST: ' . json_encode($_POST)) : '';
         // Sanitise GET and POST arrays
         $post = $this->sanitizeFields($_POST);
         $get  = $this->sanitizeFields($_GET);
@@ -273,6 +274,7 @@ HTML;
         $reference      = $this->getOrderReference($order);
 
         if ( ! $this->validateChecksum($post, $reference)) {
+            $order->update_status(self::PENDING, __('Checksum failed'));
             exit();
         }
 
@@ -356,7 +358,7 @@ HTML;
             }
             if ( ! $order->has_status(self::FAILED)) {
                 $order->add_order_note('Failed Response via Notify, ' . $this->error_desc . self::BR);
-                $order->update_status(self::FAILED);
+                $order->update_status(self::PENDING, __('Checksum failed in notify'));
             }
             exit();
         } else {
@@ -385,12 +387,12 @@ HTML;
                 exit;
                 break;
             case 2:
-                $this->add_notice('The transaction failed', self::ERROR);
+                $this->add_notice('The transaction was declined', self::ERROR, $order_id);
                 $this->processOrderFinalFail($order, $transaction_id, $pay_request_id, $result_desc, 'ipn');
                 exit;
                 break;
             case 4:
-                $this->add_notice('The transaction was cancelled', self::ERROR);
+                $this->add_notice('The transaction was cancelled', self::ERROR, $order_id);
                 $this->processOrderFinalCancel($order, $transaction_id, $pay_request_id, 'ipn');
                 exit;
                 break;
@@ -547,12 +549,12 @@ RT;
                 exit();
                 break;
             case 2:
-                $this->add_notice('The transaction failed', self::ERROR);
+                $this->add_notice('The transaction was declined', self::ERROR, $order->get_id());
                 $this->processOrderFinalFail($order, $transaction_id, $pay_request_id, $result_desc);
                 exit;
                 break;
             case 4:
-                $this->add_notice('The transaction was cancelled', self::ERROR);
+                $this->add_notice('The transaction was cancelled', self::ERROR, $order->get_id());
                 $this->processOrderFinalCancel($order, $transaction_id, $pay_request_id);
                 exit;
                 break;
@@ -635,14 +637,14 @@ RT;
         if ($this->settings[self::DISABLENOTIFY] == 'yes') {
             if ( ! $order->has_status(self::FAILED)) {
                 $order->add_order_note(
-                    'Response via Redirect: User cancelled transaction<br/>PayGate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                    'Response via Redirect: User cancelled transaction<br/>'  . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                 );
                 $order->update_status(self::FAILED);
             }
         } else {
             if ( ! $order->has_status(self::FAILED)) {
                 $order->add_order_note(
-                    'Response via Notify, User cancelled transaction<br/>PayGate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                    'Response via Notify, User cancelled transaction<br/>' . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                 );
                 $order->update_status(self::FAILED);
             }
@@ -663,14 +665,14 @@ RT;
         if ($this->settings[self::DISABLENOTIFY] == 'yes') {
             if ( ! $order->has_status(self::FAILED)) {
                 $order->add_order_note(
-                    'Response via Redirect, RESULT_DESC: ' . $result_desc . self::PAYGATE_TRANS_ID . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                    'Response via Redirect, RESULT_DESC: ' . $result_desc . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                 );
                 $order->update_status(self::FAILED);
             }
         } else {
             if ( ! $order->has_status(self::FAILED)) {
                 $order->add_order_note(
-                    'Response via Notify, RESULT_DESC: ' . $result_desc . self::PAYGATE_TRANS_ID . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                    'Response via Notify, RESULT_DESC: ' . $result_desc . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                 );
                 $order->update_status(self::FAILED);
             }
