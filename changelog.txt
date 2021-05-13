@@ -1,3 +1,12 @@
+= 1.4.3 - May 13, 2021
+* Tested on WooCommerce 5.3 and Wordpress 5.7.
+* Add SnapScan payment type.
+* Remove legacy reference to 'paypopup'.
+* Fix error messaging on cancelled and declined transactions.
+* Use pending status for checksum failures.
+* Add cron job for query function on orders older than 60 minutes.
+* Fixed incorrect order note on transaction declined for Notify method.
+
 = 1.4.2 - Jan 18, 2021
 * Tested on WooCommerce 4.9 and Wordpress 5.6.
 * Fix an issue where PayVault did not work while Payment Type selection was active.
