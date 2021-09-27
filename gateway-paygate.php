@@ -17,6 +17,7 @@
  * Copyright: © 2021 PayGate (Pty) Ltd.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain: paygate-payweb-for-woocommerce
  */
 
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
@@ -30,7 +31,7 @@ function paygate_payweb_on_plugin_activation()
     $new_file = str_replace($current, $new, $current_file);
     if($current === 'woocommerce-gateway-paygate-pw3') {
         deactivate_plugins($current_file);
-        rename(WP_PLUGIN_DIR . '/' . $current_file, WP_PLUGIN_DIR . '/' . $new_file);
+        rename(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
         activate_plugin($new_file);
     }
 }
@@ -44,6 +45,10 @@ function paygate_payweb_on_plugin_activation()
 
 function woocommerce_paygate_init()
 {
+    if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+        return;
+    }
+
     if ( ! class_exists('WC_Payment_Gateway')) {
         return;
     }
@@ -120,3 +125,26 @@ function woocommerce_add_paygate_gateway($methods)
 
     return $methods;
 } // End woocommerce_add_paygate_gateway()
+
+function woocommerce_paygate_registered()
+{
+    if(!paygate_wc_is_installed()) {
+        add_action('admin_notices', 'addInvalidPluginNoticePG');
+        deactivate_plugins(plugin_basename(__FILE__));
+    }
+}
+
+function paygate_wc_is_installed()
+{
+    return in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
+}
+
+function addInvalidPluginNoticePG()
+{
+    echo <<<NOTICE
+<div id="message" class="error">
+<p>WooCommerce is required for this plugin</p>
+</div>
+NOTICE
+    ;
+}
