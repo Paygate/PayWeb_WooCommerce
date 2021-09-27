@@ -19,6 +19,23 @@
  */
 
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
+add_filter('upgrader_post_install', 'paygate_payweb_on_plugin_activation', 10, 3);
+
+function paygate_payweb_on_plugin_activation()
+{
+    global $wp_filesystem;
+
+    // Check to see if this plugin is in the old or new directory
+    $current = plugin_basename(__DIR__);
+    $new = 'paygate-payweb-for-woocommerce';
+    $current_file = plugin_basename(__FILE__);
+    $new_file = str_replace($current, $new, $current_file);
+    if($current === 'woocommerce-gateway-paygate-pw3') {
+        deactivate_plugins(WP_PLUGIN_DIR . '/' . $current_file);
+        $wp_filesystem->move(WP_PLUGIN_DIR . '/' . $current, WP_PLUGIN_DIR . '/' . $new);
+        activate_plugin($new_file);
+    }
+}
 
 /**
  * Initialize the gateway.
