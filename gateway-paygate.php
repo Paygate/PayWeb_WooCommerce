@@ -70,7 +70,7 @@ function woocommerce_paygate_init()
 
         $config = array(
             'slug'               => plugin_basename(__FILE__),
-            'proper_folder_name' => 'woocommerce-gateway-paygate-pw3',
+            'proper_folder_name' => 'paygate-payweb-for-woocommerce',
             'api_url'            => 'https://api.github.com/repos/linwor/PayWeb_WooCommerce',
             'raw_url'            => 'https://raw.github.com/linwor/PayWeb_WooCommerce/master',
             'github_url'         => 'https://github.com/linwor/PayWeb_WooCommerce',
