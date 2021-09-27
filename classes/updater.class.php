@@ -566,14 +566,12 @@ class WP_GitHub_Updater_PW3
     public function upgrader_post_install($true, $hook_extra, $result)
     {
         global $wp_filesystem;
-        $new_folder = 'paygate-payweb-for-woocommerce';
 
         // Move & Activate
-//        $proper_destination = WP_PLUGIN_DIR . '/' . $this->config['proper_folder_name'];
-        $proper_destination = WP_PLUGIN_DIR . '/' . $new_folder;
+        $proper_destination = WP_PLUGIN_DIR . '/' . $this->config['proper_folder_name'];
         $wp_filesystem->move($result['destination'], $proper_destination);
         $result['destination'] = $proper_destination;
-        $activate              = activate_plugin($proper_destination . '/gateway-paygate.php');
+        $activate              = activate_plugin(WP_PLUGIN_DIR . '/' . $this->config['slug']);
 
         // Output the update message
         $fail    = __(
