@@ -1,3 +1,9 @@
+= 1.4.4 - Sep 27, 2021
+* Bring inline with v1.4.4 on wordpress.org
+* https://wordpress.org/plugins/paygate-payweb-for-woocommerce/
+* Add PayPal payment type.
+* Move plugin to WordPress.org.
+
 = 1.4.3 - May 13, 2021
 * Tested on WooCommerce 5.3 and Wordpress 5.7.
 * Add SnapScan payment type.
