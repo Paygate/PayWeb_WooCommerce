@@ -194,17 +194,19 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
 
         if ( ! is_wp_error($parsed_response)) {
             unset($parsed_response[self::CHECKSUM]);
-            $checksum = md5(implode('', $parsed_response) . $this->encryption_key);
+            $checksum = esc_attr(md5(implode('', $parsed_response) . $this->encryption_key));
 
             $heading    = __('Thank you for your order, please click the button below to pay via PayGate.', self::ID);
-            $buttonText = __($this->order_button_text, self::ID);
+            $buttonText = esc_attr__($this->order_button_text, self::ID);
             $cancelUrl  = esc_url($order->get_cancel_order_url());
-            $cancelText = __('Cancel order &amp; restore cart', self::ID);
+            $cancelText = esc_html__('Cancel order &amp; restore cart', self::ID);
+            $process_url = esc_url($this->process_url);
+            $pay_request_id = esc_attr($parsed_response[self::PAY_REQUEST_ID]);
 
             return <<<HTML
 <p>{$heading}</p>
-<form action="{$this->process_url}" method="post" id="paygate_payment_form">
-    <input name="PAY_REQUEST_ID" type="hidden" value="{$parsed_response[self::PAY_REQUEST_ID]}" />
+<form action="{$process_url}" method="post" id="paygate_payment_form">
+    <input name="PAY_REQUEST_ID" type="hidden" value="{$pay_request_id}" />
     <input name="CHECKSUM" type="hidden" value="{$checksum}" />
     <!-- Button Fallback -->
     <div class="payment_buttons">
@@ -237,7 +239,7 @@ jQuery(document).ready(function(){
 </script>
 HTML;
         } else {
-            echo $parsed_response->get_error_message();
+            echo esc_html($parsed_response->get_error_message());
         }
     }
 
@@ -265,6 +267,12 @@ HTML;
         if ($order_id == '') {
             exit();
         }
+
+        $transient = get_transient('PAYGATE_PAYWEB_RED_' . $post[self::PAY_REQUEST_ID]);
+        if($transient !== false) {
+            exit();
+        }
+        set_transient('PAYGATE_PAYWEB_RED_' . $post[self::PAY_REQUEST_ID], $post[self::PAY_REQUEST_ID], 15);
 
         $order       = wc_get_order($order_id);
         $customer_id = $order->get_customer_id();
@@ -342,12 +350,21 @@ HTML;
         $paygate_data = $this->sanitizeFields($_POST);
 
         $order_id = '';
-        if (isset($paygate_data[self::REFERENCE])) {
-            $order_id = explode("-", $paygate_data[self::REFERENCE]);
-            $order_id = trim($order_id[0]);
+        if (!isset($paygate_data[self::REFERENCE])) {
+            exit;
         }
+
+        $transient = get_transient('PAYGATE_PAYWEB_IPN_' . $paygate_data[self::REFERENCE]);
+        if ($transient !== false) {
+            exit();
+        }
+        set_transient('PAYGATE_PAYWEB_IPN_' . $paygate_data[self::REFERENCE], $paygate_data[self::REFERENCE], 15);
+
+        $order_id = explode("-", $paygate_data[self::REFERENCE]);
+        $order_id = trim($order_id[0]);
+
         $order = wc_get_order($order_id);
-        if ( ! $order) {
+        if (!$order) {
             exit();
         }
 
@@ -407,7 +424,7 @@ HTML;
                     $order->update_status(self::PENDING);
                 }
                 $redirect_link = $this->get_return_url($order);
-                echo self::SCRIPT_WIN_TOP_LOCAT_HREF . $redirect_link . self::SCRIPT_TAG;
+                echo self::SCRIPT_WIN_TOP_LOCAT_HREF . esc_html($redirect_link) . self::SCRIPT_TAG;
                 exit;
                 break;
         }
