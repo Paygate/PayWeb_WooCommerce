@@ -1,5 +1,4 @@
 *** PayGate PayWeb for WooCommerce Changelog ***
-
 = 1.4.4 - 2021-08-31 =
  * Add PayPal payment type.
  * Move plugin to WordPress.org.

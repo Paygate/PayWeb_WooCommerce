@@ -88,6 +88,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const BANK_TRANSFER                       = 'pw3_bank_transfer';
     const ZAPPER                              = 'pw3_e_zapper';
     const SNAPSCAN                            = 'pw3_e_snapscan';
+    const PAYPAL                              = 'pw3_e_paypal';
     const MOBICRED                            = 'pw3_e_mobicred';
     const MOMOPAY                             = 'pw3_e_momopay';
     const MASTERPASS                          = 'pw3_e_masterpass';
@@ -95,6 +96,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const BANK_TRANSFER_METHOD                = 'BT';
     const ZAPPER_METHOD                       = 'EW-ZAPPER';
     const SNAPSCAN_METHOD                     = 'EW-SNAPSCAN';
+    const PAYPAL_METHOD                       = 'EW-PAYPAL';
     const MOBICRED_METHOD                     = 'EW-MOBICRED';
     const MOMOPAY_METHOD                      = 'EW-MOMOPAY';
     const MASTERPASS_METHOD                   = 'EW-MASTERPASS';
@@ -103,6 +105,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const BANK_TRANSFER_METHOD_DETAIL         = 'SID';
     const ZAPPER_DESCRIPTION                  = 'Zapper';
     const SNAPSCAN_DESCRIPTION                = 'SnapScan';
+    const PAYPAL_DESCRIPTION                  = 'PayPal';
     const MOBICRED_DESCRIPTION                = 'Mobicred';
     const MOMOPAY_DESCRIPTION                 = 'MoMoPay';
     const MOMOPAY_METHOD_DETAIL               = 'Momopay';
@@ -155,6 +158,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         self::BANK_TRANSFER_METHOD => self::BANK_TRANSFER_METHOD_DETAIL,
         self::ZAPPER_METHOD        => self::ZAPPER_DESCRIPTION,
         self::SNAPSCAN_METHOD      => self::SNAPSCAN_DESCRIPTION,
+        self::PAYPAL_METHOD        => self::PAYPAL_DESCRIPTION,
         self::MOBICRED_METHOD      => self::MOBICRED_DESCRIPTION,
         self::MOMOPAY_METHOD       => self::MOMOPAY_METHOD_DETAIL,
         self::MASTERPASS_METHOD    => self::MASTERPASS_DESCRIPTION,
@@ -290,7 +294,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             $orderMessages = get_post_meta($order_id, 'paygate_error');
             $orderMessage  = $orderMessages[count($orderMessages) - 1];
 
-            echo '<h3 style="color: red;">' . $orderMessage . '</h3>';
+            echo '<h3 style="color: red;">' . esc_html($orderMessage) . '</h3>';
         }
     }
 
@@ -337,13 +341,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             }
         }
 
-        $notices = wc_kses_notice(ob_get_clean());
-
         if ($return) {
-            return $notices;
+            return wc_kses_notice(ob_get_clean());
         }
 
-        echo $notices;
+        echo wc_kses_notice(ob_get_clean());
     }
 
     /**
@@ -526,6 +528,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
+            self::PAYPAL              => array(
+                self::TITLE         => __(self::ENABLE . self::PAYPAL_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::LABEL         => self::PAYPAL_DESCRIPTION . self::MUST_BE_ENABLED,
+                self::TYPE          => self::CHECKBOX,
+                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESC_TIP      => true,
+                self::DEFAULT_CONST => 'no',
+            ),
             self::MOBICRED              => array(
                 self::TITLE         => __(self::ENABLE . self::MOBICRED_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::MOBICRED_DESCRIPTION . self::MUST_BE_ENABLED,
@@ -567,7 +577,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     public function declined_msg($resultDescription)
     {
         echo '<p class="woocommerce-thankyou-order-failed">';
-        _e($resultDescription, 'woocommerce');
+        esc_html_e($resultDescription, 'woocommerce');
         echo '</p>';
     }
 
@@ -618,9 +628,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             if (count($tokens) > 0) {
                 $this->showTokens($defaultToken, $tokens);
             } else {
+                $token = 'wc-' . esc_attr($this->id) . '-payment-token';
+                $new_method = 'wc-' . esc_attr($this->id) . '-new-payment-method';
                 echo <<<HTML
-<div name="wc-{$this->id}-payment-token" >
-                <input type="checkbox" name="wc-{$this->id}-new-payment-method" id="wc-paygate-new-payment-method" value="true"> Remember my credit card number
+<div name="$token" >
+                <input type="checkbox" name="$new_method" id="wc-paygate-new-payment-method" value="true"> Remember my credit card number
 </div>
 HTML;
             }
@@ -633,7 +645,7 @@ HTML;
 HTML;
         } else {
             if (isset($this->settings[self::DESCRIPTION]) && $this->settings[self::DESCRIPTION] != '') {
-                echo wpautop(wptexturize($this->settings[self::DESCRIPTION]));
+                echo wp_kses_post(wpautop(wptexturize(esc_html($this->settings[self::DESCRIPTION]))));
             }
         }
         $quickSelectPaymentMethods = false;
@@ -651,7 +663,7 @@ HTML;
                 $html .= '<tr>';
                 if ($pw_3_card_method['value'] !== '') {
                     $quickSelectPaymentMethods = true;
-                    $html                      .= '<td><input type="radio" name="sub_payment_method" value="' . $pw_3_card_method['value'] . '">&nbsp;' . $pw_3_card_method['description'] . '</td>';
+                    $html                      .= '<td class="card_method" ><input type="radio" name="sub_payment_method" value="' . esc_attr($pw_3_card_method['value']) . '" >&nbsp;' . esc_html($pw_3_card_method['description']) . '</td>';
                     $html                      .= '<td class="pay_method_image">';
                     $html                      .= '<img src="' . esc_url(
                             WC_HTTPS::force_https_url($pw_3_card_method['image'])
@@ -665,7 +677,18 @@ HTML;
             }
             $html .= '</tbody></table>';
             if ($quickSelectPaymentMethods) {
-                echo $html;
+                $allowed_tags = array_replace_recursive(
+                        wp_kses_allowed_html('post'),
+                    [
+                        'script' => [],
+                        'input' => [
+                            'name' => true,
+                            'value' => true,
+                            'type' => true,
+                        ]
+                    ]
+                );
+                echo wp_kses($html, $allowed_tags);
             }
         }
     }
@@ -814,7 +837,27 @@ HTML;
     {
         $receipt = new WC_Gateway_PayGate_Portal();
         // Do redirect
-        echo $receipt->generate_paygate_form($order_id);
+        $allowed_tags = array_replace_recursive(
+            wp_kses_allowed_html('post'),
+            [
+                'script' => [],
+                'form' => [
+                    'action' => true,
+                    'method' => true,
+                    'id' => true,
+                    'class' => true,
+                ],
+                'input' => [
+                    'name' => true,
+                    'type' => true,
+                    'value' => true,
+                    'class' => true,
+                    'id' => true,
+                ]
+            ]
+        );
+
+        echo wp_kses($receipt->generate_paygate_form($order_id), $allowed_tags);
     }
 
     /**
@@ -883,6 +926,11 @@ HTML;
                 'description' => self::SNAPSCAN_DESCRIPTION,
                 'value'       => $this->settings[self::SNAPSCAN] == 'yes' ? self::SNAPSCAN_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/snapscan.svg',
+            );
+            $this->pw3_card_methods['paypal']      = array(
+                'description' => self::PAYPAL_DESCRIPTION,
+                'value'       => $this->settings[self::PAYPAL] == 'yes' ? self::PAYPAL_METHOD : '',
+                'image'       => $this->get_plugin_url() . '/assets/images/paypal.svg',
             );
             $this->pw3_card_methods['mobicred']      = array(
                 'description' => self::MOBICRED_DESCRIPTION,
@@ -985,13 +1033,14 @@ HTML;
 
     protected function showTokens($defaultToken, $tokens)
     {
+        $token = esc_attr("wc-{$this->id}-payment-token");
         if ($this->pw3_card_methods_enabled) {
             echo <<<HTML
-                        <select name="wc-{$this->id}-payment-token" class="start_hidden">
+                        <select name="$token" class="start_hidden">
 HTML;
         } else {
             echo <<<HTML
-                        <select name="wc-{$this->id}-payment-token">
+                        <select name="$token">
 HTML;
         }
 
@@ -1010,9 +1059,11 @@ HTML;
                     $selected = '';
                 }
 
+                $option_value = esc_attr($token->get_token());
+                $card_type = esc_html($cardType);
+                $last4 = esc_html($token->get_last4());
                 echo <<<HTML
-                     <option value="{$token->get_token()}" {$selected}>Use {$cardType} ending in {$token->get_last4(
-                )}</option> }
+                     <option value="{$option_value}" {$selected}>Use {$card_type} ending in {$last4}</option> }
 HTML;
             }
         }
