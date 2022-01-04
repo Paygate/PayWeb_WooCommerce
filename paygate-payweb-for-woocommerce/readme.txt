@@ -4,7 +4,7 @@ Tags: ecommerce, e-commerce, woocommerce, automattic, payment, paygate, app inle
 Requires at least: 5.6
 Tested up to: 5.8
 Requires PHP: 7.4
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -12,29 +12,31 @@ This is the official PayGate extension to receive payments for WooCommerce.
 
 == Description ==
 
-The PayGate extension for WooCommerce enables you to accept payments including Card, SiD Secure EFT, Zapper, SnapScan, PayPal, Mobicred, MoMoPay and MasterPass via one of South Africa’s most popular payment gateways.
+The PayGate PayWeb plugin for WooCommerce lets you accept online payments, including credit and debit cards, QR code payments with Zapper, digital wallets like MasterPass and other payment methods like SiD Secure EFT, PayPal, Mobicred, and MoMoPay.
 
-= Why choose PayGate? =
+== Why Choose PayGate? ==
 
-PayGate gives your customers more flexibility including payments using Card, SiD Secure EFT, Zapper, SnapScan, PayPal, Mobicred, MoMoPay and MasterPass.
+We provide a secure checkout experience for your shoppers with a wealth of payment methods to choose from, knowing that intelligent fraud protection engines monitor your transactions around the clock.
 
-== Frequently Asked Questions ==
+== FAQ's ==
 
 = Does this require a PayGate merchant account? =
 
-Yes! A PayGate merchant account, Encryption key and PayGate ID are required for this gateway to function.
+Yes! You need to sign up with PayGate to receive an Encryption key and PayGate ID for this gateway to function. You can do so at [www.paygate.co.za](https://www.paygate.co.za) or by emailing [salessa@dpogroup.com](mailto:salessa@dpogroup.com).
 
 = Does this require an SSL certificate? =
 
-An SSL certificate is recommended for additional safety and security for your customers.
+We do recommend obtaining an SSL certificate to allow an additional layer of safety for your online shoppers.
 
-= Where can I find documentation? =
+= Where can I find API documentation? =
 
-For help setting up and configuring, please refer to our [user guide](https://github.com/PayGate/PayWeb_WooCommerce)
+For help setting up and configuring the PayGate PayWeb plugin, please refer to our [user guide](https://github.com/PayGate/PayWeb_WooCommerce).
 
-= Where can I get support or talk to other users? =
+= I need some assistance. Whom can I contact? =
 
-If you get stuck, feel free to contact the PayGate support team at [support@paygate.co.za](mailto:support@paygate.co.za) should you require any assistance.
+Need help to configure this plugin? Feel free to connect with our PayGate Support Team by emailing us at [supportsa@dpogroup.com](mailto:supportsa@dpogroup.com) or give us a call at +27 (0) 878 20 2020.
+
+If you get stuck, feel free to contact the PayGate support team at  should you require any assistance.
 
 == Screenshots ==
 1. WooComemrce Admin Payments Screen
@@ -43,6 +45,11 @@ If you get stuck, feel free to contact the PayGate support team at [support@payg
 4. WooComemrce Admin PayGate Additional Settings continued
 
 == Changelog ==
+= 1.4.5 - 2022-01-04 =
+ * Tested on WooCommerce 6.0 and Wordpress 5.8.
+ * Implement payment type filter hooks.
+ * Update Masterpass to Scan to Pay.
+ * Add transient in notify handler to curb duplicate transactions.
 
 = 1.4.4 - 2021-08-31 =
  * Add PayPal payment type.

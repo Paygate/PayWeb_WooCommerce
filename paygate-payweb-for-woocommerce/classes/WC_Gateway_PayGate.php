@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2020 PayGate (Pty) Ltd
+ * Copyright (c) 2022 PayGate (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -84,6 +84,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const SCRIPT_WIN_TOP_LOCAT_HREF           = '<script>window.top.location.href="';
     const ERROR                               = 'error';
     const PAYGATE_TRANS_ID                    = '<br/>PayGate Trans Id: ';
+
+    // Payment methods
     const CREDIT_CARD                         = 'pw3_credit_card';
     const BANK_TRANSFER                       = 'pw3_bank_transfer';
     const ZAPPER                              = 'pw3_e_zapper';
@@ -91,7 +93,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const PAYPAL                              = 'pw3_e_paypal';
     const MOBICRED                            = 'pw3_e_mobicred';
     const MOMOPAY                             = 'pw3_e_momopay';
-    const MASTERPASS                          = 'pw3_e_masterpass';
+    const SCANTOPAY                          = 'pw3_e_scantopay';
     const CREDIT_CARD_METHOD                  = 'CC';
     const BANK_TRANSFER_METHOD                = 'BT';
     const ZAPPER_METHOD                       = 'EW-ZAPPER';
@@ -99,7 +101,9 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const PAYPAL_METHOD                       = 'EW-PAYPAL';
     const MOBICRED_METHOD                     = 'EW-MOBICRED';
     const MOMOPAY_METHOD                      = 'EW-MOMOPAY';
-    const MASTERPASS_METHOD                   = 'EW-MASTERPASS';
+    const SCANTOPAY_METHOD                   = 'EW-MASTERPASS';
+
+    // Payment method descriptions
     const CREDIT_CARD_DESCRIPTION             = 'Card';
     const BANK_TRANSFER_DESCRIPTION           = 'SiD Secure EFT';
     const BANK_TRANSFER_METHOD_DETAIL         = 'SID';
@@ -109,7 +113,9 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const MOBICRED_DESCRIPTION                = 'Mobicred';
     const MOMOPAY_DESCRIPTION                 = 'MoMoPay';
     const MOMOPAY_METHOD_DETAIL               = 'Momopay';
-    const MASTERPASS_DESCRIPTION              = 'MasterPass';
+    const SCANTOPAY_DESCRIPTION              = 'ScanToPay';
+
+
     const ON_CHECKOUT                         = ' on Checkout';
     const CHECKOUT_PAYMENT_METHOD_DESCRIPTION = 'Enable quick select for this payment type on checkout.';
     const SUB_PAYMENT_METHOD                  = 'sub_payment_method';
@@ -161,7 +167,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         self::PAYPAL_METHOD        => self::PAYPAL_DESCRIPTION,
         self::MOBICRED_METHOD      => self::MOBICRED_DESCRIPTION,
         self::MOMOPAY_METHOD       => self::MOMOPAY_METHOD_DETAIL,
-        self::MASTERPASS_METHOD    => self::MASTERPASS_DESCRIPTION,
+        self::SCANTOPAY_METHOD    => self::SCANTOPAY_DESCRIPTION,
     ];
 
     protected $pw3_card_methods = array();
@@ -395,7 +401,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
      */
     public function init_form_fields()
     {
-        $this->form_fields = array(
+        $form_fields = array(
             'enabled'                   => array(
                 self::TITLE         => __('Enable/Disable', self::ID),
                 self::LABEL         => __('Enable PayGate Payment Gateway', self::ID),
@@ -552,9 +558,9 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::MASTERPASS            => array(
-                self::TITLE         => __(self::ENABLE . self::MASTERPASS_DESCRIPTION . self::ON_CHECKOUT, self::ID),
-                self::LABEL         => self::MASTERPASS_DESCRIPTION . self::MUST_BE_ENABLED,
+            self::SCANTOPAY            => array(
+                self::TITLE         => __(self::ENABLE . self::SCANTOPAY_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::LABEL         => self::SCANTOPAY_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
                 self::DESC_TIP      => true,
@@ -569,6 +575,9 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             ),
 
         );
+
+
+        $this->form_fields = apply_filters('fnb_paygate_payweb_settings', $form_fields) ?? $form_fields;
     }
 
     /**
@@ -902,6 +911,41 @@ HTML;
     }
 
     /**
+     * All payment methods
+     *
+     * @return string[]
+     */
+    public static function getPaymentMethods(): array
+    {
+        return [
+            self::CREDIT_CARD,
+            self::BANK_TRANSFER,
+            self::ZAPPER,
+            self::SNAPSCAN,
+            self::PAYPAL,
+            self::MOBICRED,
+            self::MOMOPAY,
+            self::SCANTOPAY,
+            self::CREDIT_CARD_METHOD,
+            self::BANK_TRANSFER_METHOD,
+            self::ZAPPER_METHOD,
+            self::SNAPSCAN_METHOD,
+            self::PAYPAL_METHOD,
+            self::MOBICRED_METHOD,
+            self::MOMOPAY_METHOD,
+            self::SCANTOPAY_METHOD,
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getCardMethods(): array
+    {
+        return [self::CREDIT_CARD];
+    }
+
+    /**
      * Helper for constructor
      */
     protected function setCardMethods()
@@ -942,12 +986,15 @@ HTML;
                 'value'       => $this->settings[self::MOMOPAY] == 'yes' ? self::MOMOPAY_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/momopay.svg',
             );
-            $this->pw3_card_methods['masterpass']    = array(
-                'description' => self::MASTERPASS_DESCRIPTION,
-                'value'       => $this->settings[self::MASTERPASS] == 'yes' ? self::MASTERPASS_METHOD : '',
-                'image'       => $this->get_plugin_url() . '/assets/images/masterpass.svg',
+            $this->pw3_card_methods['scantopay']    = array(
+                'description' => self::SCANTOPAY_DESCRIPTION,
+                'value'       => $this->settings[self::SCANTOPAY] == 'yes' ? self::SCANTOPAY_METHOD : '',
+                'image'       => $this->get_plugin_url() . '/assets/images/scan-to-pay.svg',
             );
         }
+
+        $this->pw3_card_methods = apply_filters('fnb_paygate_payweb_payment_types', $this->pw3_card_methods)
+        ?? $this->pw3_card_methods;
 
         foreach ($this->settings as $key => $setting) {
             if (strpos($key, 'pw3_') === 0) {
