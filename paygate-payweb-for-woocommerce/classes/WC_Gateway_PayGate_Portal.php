@@ -281,7 +281,7 @@ HTML;
         $status         = isset($post[self::TRANSACTION_STATUS]) ? $post[self::TRANSACTION_STATUS] : "";
         $reference      = $this->getOrderReference($order);
 
-        if ( ! $this->validateChecksum($post, $reference)) {
+        if ( ! $this->validateChecksum($post, $reference) && !$order->is_paid()) {
             $order->update_status(self::PENDING, __('Checksum failed'));
             exit();
         }
@@ -365,6 +365,12 @@ HTML;
 
         $order = wc_get_order($order_id);
         if (!$order) {
+            exit();
+        }
+
+        // Check if the order has already been paid - exit if so
+        if ($order->is_paid()) {
+            $order->add_order_note('Notify: Order is already paid... exiting');
             exit();
         }
 
@@ -581,7 +587,9 @@ RT;
                         $order->add_order_note(
                             'Response via ' . $this->settings[self::PAYMENT_TYPE] . ', RESULT_DESC: ' . $result_desc . self::PAYGATE_TRANS_ID . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                         );
+                        if (!$order->is_paid()) {
                         $order->update_status(self::PENDING);
+                    }
                     }
 
                     $this->add_notice(

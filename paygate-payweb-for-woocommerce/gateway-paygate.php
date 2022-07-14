@@ -5,10 +5,10 @@
  * Description: Receive payments using the South African PayGate PW3 payments provider.
  * Author: PayGate (Pty) Ltd
  * Author URI: https://www.paygate.co.za/
- * Version: 1.4.3
- * Requires at least: 4.4
- * Tested up to: 5.8
- * WC tested up to: 5.6.0
+ * Version: 1.4.6
+ * Requires at least: 4.6
+ * Tested up to: 6.0.1
+ * WC tested up to: 6.7.0
  * WC requires at least: 4.9
  * 
  * Developer: App Inlet (Pty) Ltd
@@ -21,8 +21,6 @@
  */
 
 add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
-// Check that WooCommerce is active before activating plugin
-add_action('admin_init', 'woocommerce_paygate_registered');
 
 /**
  * Initialize the gateway.
@@ -33,9 +31,6 @@ add_action('admin_init', 'woocommerce_paygate_registered');
 
 function woocommerce_paygate_init()
 {
-    if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
-        return;
-    }
 
     if ( ! class_exists('WC_Payment_Gateway')) {
         return;
@@ -88,39 +83,3 @@ function woocommerce_add_paygate_gateway($methods)
     return $methods;
 } // End woocommerce_add_paygate_gateway()
 
-function woocommerce_paygate_registered()
-{
-    if(!paygate_wc_is_installed()) {
-        add_action('admin_notices', 'addInvalidPluginNoticePG');
-        deactivate_plugins(plugin_basename(__FILE__));
-    }
-}
-
-function recurseRmdir($dir) {
-  $files = array_diff(scandir($dir), array('.','..'));
-  foreach ($files as $file) {
-    (is_dir("$dir/$file")) ? recurseRmdir("$dir/$file") : unlink("$dir/$file");
-  }
-  return rmdir($dir);
-}
-
-function paygate_wc_is_installed()
-{
-    $new_folder = 'woocommerce-gateway-paygate-pw3';
-    $target = WP_PLUGIN_DIR . '/' . $new_folder;
-    $new_file = '/gateway-paygate.php';
-    if(file_exists($target . $new_file)) {
-        recurseRmdir($target);
-    }
-    return in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
-}
-
-function addInvalidPluginNoticePG()
-{
-    echo <<<NOTICE
-<div id="message" class="error">
-<p>WooCommerce is required for this plugin</p>
-</div>
-NOTICE
-    ;
-}
