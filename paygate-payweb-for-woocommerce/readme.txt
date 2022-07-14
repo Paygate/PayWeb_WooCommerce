@@ -2,9 +2,9 @@
 Contributors: appinlet
 Tags: ecommerce, e-commerce, woocommerce, automattic, payment, paygate, app inlet, credit card, payment request
 Requires at least: 5.6
-Tested up to: 5.8
+Tested up to: 6.0.1
 Requires PHP: 7.4
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -39,12 +39,17 @@ Need help to configure this plugin? Feel free to connect with our PayGate Suppor
 If you get stuck, feel free to contact the PayGate support team at  should you require any assistance.
 
 == Screenshots ==
-1. WooComemrce Admin Payments Screen
-2. WooComemrce Admin PayGate Primary Settings
-3. WooComemrce Admin PayGate Additional Settings
-4. WooComemrce Admin PayGate Additional Settings continued
+1. WooCommerce Admin Payments Screen
+2. WooCommerce Admin PayGate Primary Settings
+3. WooCommerce Admin PayGate Additional Settings
+4. WooCommerce Admin PayGate Additional Settings continued
 
 == Changelog ==
+= 1.4.6 - 2022-07-14 =
+ * Tested on WooCommerce 6.7.0, PHP 8.0 and Wordpress 6.0.1.
+ * Fix multi-domain multisite network activation.
+ * Fix invalid checksum message if order is already paid. 
+
 = 1.4.5 - 2022-01-04 =
  * Tested on WooCommerce 6.0 and Wordpress 5.8.
  * Implement payment type filter hooks.
