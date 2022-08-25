@@ -1,7 +1,7 @@
 # PayWeb_WooCommerce
 ## PayGate WooCommerce plugin v1.4.6 for WooCommerce v6.7.0
 
-This is the PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact the PayGate support team at support@paygate.co.za should you require any assistance.
+This is the PayGate PayWeb3 plugin for WooCommerce. Please feel free to contact the PayGate support team at supportsa@dpogroup.com should you require any assistance.
 
 ## Installation
 [![How To Setup PayGate PayWeb for WooCommerce](https://appinlet.com/wp-content/uploads/2021/01/How-To-Setup-PayGate-PayWeb-for-WooCommerce.jpg)](https://www.youtube.com/watch?v=MMcEG7FmoEM "How To Setup PayGate PayWeb for WooCommerce")
