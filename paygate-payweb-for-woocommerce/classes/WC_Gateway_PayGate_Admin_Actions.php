@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2022 PayGate (Pty) Ltd
+ * Copyright (c) 2023 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -22,11 +22,11 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
     public static function add_testmode_admin_settings_notice($form_fields)
     {
         $form_fields[self::PAYGATE_ID_LOWER_CASE][self::DESCRIPTION] .= ' <br><br><strong>' . __(
-                'PayGate ID currently in use.',
+                'Paygate ID currently in use.',
                 self::ID
             ) . ' ( 10011072130 )</strong>';
         $form_fields[self::ENCRYPTION_KEY][self::DESCRIPTION]        .= ' <br><br><strong>' . __(
-                'PayGate Encryption Key currently in use.',
+                'Paygate Encryption Key currently in use.',
                 self::ID
             ) . ' ( secret )</strong>';
 
@@ -45,7 +45,7 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
     {
         global $theorder;
         if ($theorder->get_payment_method() == self::ID) {
-            $actions['wc_custom_order_action'] = __('Query order status with PayGate', self::ID);
+            $actions['wc_custom_order_action_paygate'] = __('Query order status with Paygate', self::ID);
         }
 
         return $actions;

@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2022 PayGate (Pty) Ltd
+ * Copyright (c) 2023 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -10,13 +10,40 @@
 class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
 {
     const LOGGING = 'logging';
+    const CUTOFF_MINUTES = 30;
 
-    /**
-     *
-     */
     public static function paygate_order_query_cron()
     {
-        $gwp = new WC_Gateway_PayGate_Portal();
+        $logger = wc_get_logger();
+
+        if (is_multisite()) {
+            $logger->add('paygate-cron', 'Starting multisite cron jobs');
+            $url = add_query_arg('wc-api', 'WC_Gateway_PayGate_Cron', home_url('/'));
+            preg_match_all('/(.*)(\/\?wc.*)/', $url, $parts);
+            $sites = get_sites();
+            foreach ($sites as $site) {
+                $url = $parts[1][0] . $site->path . '?wc-api=WC_Gateway_PayGate_Cron_Site';
+                wp_remote_post($url, ['sslverify' => false]);
+            }
+
+            return;
+        }
+
+        self::paygate_order_query_cron_site();
+    }
+
+    /**
+     * Multisite queries are redirected here by remote post
+     */
+    public static function paygate_order_query_cron_site()
+    {
+        $gwp    = new WC_Gateway_PayGate_Portal();
+        $logger = wc_get_logger();
+        $logger->add('payweb-site-cron', 'Redirected to here');
+
+        $cutoffTime = new DateTime('now', new DateTimeZone('UTC'));
+        $cutoffMinutes = self::CUTOFF_MINUTES;
+        $cutoff = $cutoffTime->sub(new DateInterval("P0DT0H{$cutoffMinutes}M"))->getTimestamp();
 
         // Load the settings
         $settings = get_option('woocommerce_paygate_settings', false);
@@ -27,27 +54,26 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
             $logging = true;
         }
 
-        $logger = wc_get_logger();
-        $logging ? $logger->add('payweb_cron', 'Starting cron job') : '';
+        $logging ? $logger->add('payweb-site-cron', 'Starting site cron job') : '';
 
-        $orders = self::paygate_order_query_cron_query();
-        $logging ? $logger->add('payweb_cron', 'Orders: ' . serialize($orders)) : '';
+        $orders = wc_get_orders([
+                                    'post_status'   => 'wc-pending',
+                                    'date_created' => '<' . $cutoff,
+                                ]);
+        $logging ? $logger->add('payweb-site-cron', 'Orders: ' . serialize($orders)) : '';
 
-        foreach ($orders as $order_id) {
-            $order   = null;
-            $orderId = $order_id->ID;
-            $logging ? $logger->add('payweb_cron', 'Order ID: ' . $orderId) : '';
+        foreach ($orders as $order) {
+            $orderId = $order->get_id();
             try {
-                $order = new WC_Order($orderId);
-                $logging ? $logger->add('payweb_cron', 'Order: ' . serialize($order)) : '';
+                $logging ? $logger->add('payweb-site-cron', 'Order: ' . serialize($order)) : '';
             } catch (Exception $e) {
-                $logging ? $logger->add('payweb_cron', 'Fatal error: ' . $e->getMessage()) : '';
+                $logging ? $logger->add('payweb-site-cron', 'Fatal error: ' . $e->getMessage()) : '';
             }
 
             $notes = self::getOrderNotes($orderId);
 
             $payRequestId = WC_Gateway_PayGate_Portal::getPayRequestIdNotes($notes);
-            $logging ? $logger->add('payweb_cron', 'PayRequestId: ' . $payRequestId) : '';
+            $logging ? $logger->add('payweb-site-cron', 'PayRequestId: ' . $payRequestId) : '';
 
             if ($payRequestId == '') {
                 break;
@@ -57,38 +83,19 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
             $transactionStatus = $gwp->paywebQueryStatus($response);
             $responseText      = $gwp->paywebQueryText($response, $payRequestId);
 
-            $logging ? $logger->add('payweb_cron', 'Response Text: ' . $responseText) : '';
+            $logging ? $logger->add('payweb-site-cron', 'Response Text: ' . $responseText) : '';
 
             if ((int)$transactionStatus === 1) {
-                if ( ! $order->has_status(self::PROCESSING) && ! $order->has_status(self::COMPLETED)) {
-                    $order->payment_complete();
+                if (!$order->has_status(self::PROCESSING) && !$order->has_status(self::COMPLETED)) {
+                    $order->update_status(self::PROCESSING);
                     $responseText .= "<br>Order set to \"Processing\" by PayWeb Cron";
                 }
             } else {
-                if ( ! $order->has_status(self::FAILED)) {
+                if (!$order->has_status(self::FAILED)) {
                     $order->update_status(self::FAILED);
                 }
             }
             $order->add_order_note('Queried by cron at ' . date('Y-m-d H:i') . '<br>Response: <br>' . $responseText);
         }
-    }
-
-    protected static function paygate_order_query_cron_query()
-    {
-        global $wpdb;
-
-        // Orders from the last 60 minutes
-        $ordersModifiedInLastHour = " " . date('Y-m-d H:i:s', strtotime('-60 minutes')) . "";
-
-        $query = <<<QUERY
-SELECT ID FROM `{$wpdb->prefix}posts`
-INNER JOIN `{$wpdb->prefix}postmeta` ON {$wpdb->prefix}posts.ID = {$wpdb->prefix}postmeta.post_id
-WHERE meta_key = '_payment_method'
-AND meta_value = 'paygate'
-AND post_status = 'wc-pending'
-AND post_date_gmt < '$ordersModifiedInLastHour'
-QUERY;
-
-        return $wpdb->get_results($query);
     }
 }

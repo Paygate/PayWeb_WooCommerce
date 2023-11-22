@@ -1,11 +1,17 @@
-*** PayGate PayWeb for WooCommerce Changelog ***
+*** Paygate for WooCommerce Changelog ***
+= 1.4.7 - 2023-11-22 =
+ * Tested on WooCommerce 8.3.1, PHP 8.0 and WordPress 6.4.1.
+ * Add support for HPOS and Blocks.
+ * Add Apple Pay, Samsung Pay and RCS Payment Types.
+ * Other fixes and improvements.
+
 = 1.4.6 - 2022-07-14 =
- * Tested on WooCommerce 6.7.0, PHP 8.0 and Wordpress 6.0.1.
+ * Tested on WooCommerce 6.7.0, PHP 8.0 and WordPress 6.0.1.
  * Fix multi-domain multisite network activation.
- * Fix invalid checksum message if order is already paid. 
+ * Fix invalid checksum message if order is already paid.
 
 = 1.4.5 - 2022-01-04 =
- * Tested on WooCommerce 6.0 and Wordpress 5.8.
+ * Tested on WooCommerce 6.0 and WordPress 5.8.
  * Implement payment type filter hooks.
  * Update Masterpass to Scan to Pay.
  * Add transient in notify handler to curb duplicate transactions.
@@ -15,7 +21,7 @@
  * Move plugin to WordPress.org.
 
 = 1.4.3 - 2021-05-13 =
- * Tested on WooCommerce 5.3 and Wordpress 5.7.
+ * Tested on WooCommerce 5.3 and WordPress 5.7.
  * Add SnapScan payment type.
  * Remove legacy reference to 'paypopup'.
  * Fix error messaging on cancelled and declined transactions.
@@ -24,7 +30,7 @@
  * Fixed incorrect order note on transaction declined for Notify method.
 
 = 1.4.2 - 2021-01-18 =
- * Tested on WooCommerce 4.9 and Wordpress 5.6.
+ * Tested on WooCommerce 4.9 and WordPress 5.6.
  * Fix an issue where PayVault did not work while Payment Type selection was active.
  * Remove iFrame support.
  * Add PayGate Plus logo option.
@@ -75,7 +81,7 @@
  * Fix overflow scroll for smaller iPhones.
 
 = 1.1.9 - 2019-01-10 =
- * Wordpress 5 compatibility
+ * WordPress 5 compatibility
  * Add support for sequential order number plugins (get_order_number and get_id).
  * Add support for plugin update icons and 'Tested Version'.
 
