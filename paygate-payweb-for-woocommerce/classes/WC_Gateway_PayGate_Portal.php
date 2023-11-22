@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2022 PayGate (Pty) Ltd
+ * Copyright (c) 2023 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -27,7 +27,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
     }
 
     /**
-     * Does the initiate to PayGate
+     * Does the initiate to Paygate
      *
      * @param $order_id
      *
@@ -47,7 +47,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             self::PAYGATE_ID   => $this->merchant_id,
             self::REFERENCE    => $reference,
             'AMOUNT'           => number_format($order_total, 2, '', ''),
-            'CURRENCY'         => get_woocommerce_currency(),
+            'CURRENCY'         => $order->get_currency(),
             'RETURN_URL'       => $this->redirect_url . '&gid=' . $order_id,
             'TRANSACTION_DATE' => date('Y-m-d H:m:s'),
             'LOCALE'           => 'en-za',
@@ -163,7 +163,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
 
         // Add order note with the PAY_REQUEST_ID for custom query
         $order->add_order_note(
-            'Initiate on PayGate started. Pay Request Id: ' . $parsed_response[self::PAY_REQUEST_ID]
+            'Initiate on Paygate started. Pay Request Id: ' . $parsed_response[self::PAY_REQUEST_ID]
         );
 
         if ( ! $order->has_status(self::PENDING)) {
@@ -174,7 +174,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
     }
 
     /**
-     * Generate the PayGate button link.
+     * Generate the Paygate button link.
      * Redirect case
      *
      * @param $order_id
@@ -196,7 +196,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             unset($parsed_response[self::CHECKSUM]);
             $checksum = esc_attr(md5(implode('', $parsed_response) . $this->encryption_key));
 
-            $heading    = __('Thank you for your order, please click the button below to pay via PayGate.', self::ID);
+            $heading    = __('Thank you for your order, please click the button below to pay via Paygate.', self::ID);
             $buttonText = esc_attr__($this->order_button_text, self::ID);
             $cancelUrl  = esc_url($order->get_cancel_order_url());
             $cancelText = esc_html__('Cancel order &amp; restore cart', self::ID);
@@ -244,7 +244,7 @@ HTML;
     }
 
     /**
-     * Check for valid PayGate Redirect - from iFrame or  Redirect
+     * Check for valid Paygate Redirect - from iFrame or  Redirect
      *
      * @since 1.0.0
      */
@@ -323,7 +323,7 @@ HTML;
     }
 
     /**
-     * Check for valid PayGate Notify
+     * Check for valid Paygate Notify
      *
      * @since 1.0.0
      */
@@ -335,7 +335,7 @@ HTML;
             self::$wc_logger->add('paygatepayweb', 'Notify GET: ' . json_encode($_GET));
         }
 
-        // Tell PayGate notify we have received
+        // Tell Paygate notify we have received
         echo 'OK';
 
         if ($this->settings[self::DISABLENOTIFY] == 'yes') {
@@ -510,9 +510,13 @@ RT;
         $order_id  = $order->get_id();
         $reference = $order_id . '-' . $order->get_order_number();
 
+        if ($this->customPGReference) {
+            $reference = $order->get_order_number();
+        }
+
         // Set reference if custom order meta is set
         if ($this->order_meta_reference != '') {
-            $reference_meta = get_post_meta($order_id, sanitize_key($this->order_meta_reference), true);
+            $reference_meta = $order->get_meta(sanitize_key($this->order_meta_reference), true);
             $reference      .= ! empty($reference_meta) ? '-' . $reference_meta : '';
         }
 
@@ -626,7 +630,7 @@ RT;
             case 'redirect':
                 if ($this->settings[self::DISABLENOTIFY] === 'yes') {
                     $order->add_order_note(
-                        'Response via Redirect: Transaction successful<br/>PayGate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                        'Response via Redirect: Transaction successful<br/>Paygate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                     );
                     if ( ! $order->has_status(self::PROCESSING) && ! $order->has_status(self::COMPLETED)) {
                         $order->payment_complete();
@@ -636,7 +640,7 @@ RT;
             case 'ipn':
                 if ($this->settings[self::DISABLENOTIFY] !== 'yes') {
                     $order->add_order_note(
-                        'Response via Notify: Transaction successful<br/>PayGate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                        'Response via Notify: Transaction successful<br/>Paygate Trans Id: ' . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                     );
                     if ( ! $order->has_status(self::PROCESSING) && ! $order->has_status(self::COMPLETED)) {
                         $order->payment_complete();
