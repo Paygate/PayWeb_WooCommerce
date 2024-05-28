@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2023 Payfast (Pty) Ltd
+ * Copyright (c) 2024 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -9,7 +9,7 @@
 
 class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
 {
-    const LOGGING = 'logging';
+    const LOGGING        = 'logging';
     const CUTOFF_MINUTES = 30;
 
     public static function paygate_order_query_cron()
@@ -41,9 +41,9 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
         $logger = wc_get_logger();
         $logger->add('payweb-site-cron', 'Redirected to here');
 
-        $cutoffTime = new DateTime('now', new DateTimeZone('UTC'));
+        $cutoffTime    = new DateTime('now', new DateTimeZone('UTC'));
         $cutoffMinutes = self::CUTOFF_MINUTES;
-        $cutoff = $cutoffTime->sub(new DateInterval("P0DT0H{$cutoffMinutes}M"))->getTimestamp();
+        $cutoff        = $cutoffTime->sub(new DateInterval("P0DT0H{$cutoffMinutes}M"))->getTimestamp();
 
         // Load the settings
         $settings = get_option('woocommerce_paygate_settings', false);
@@ -57,7 +57,7 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
         $logging ? $logger->add('payweb-site-cron', 'Starting site cron job') : '';
 
         $orders = wc_get_orders([
-                                    'post_status'   => 'wc-pending',
+                                    'post_status'  => 'wc-pending',
                                     'date_created' => '<' . $cutoff,
                                 ]);
         $logging ? $logger->add('payweb-site-cron', 'Orders: ' . serialize($orders)) : '';

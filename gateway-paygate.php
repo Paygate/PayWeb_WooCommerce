@@ -5,17 +5,17 @@
  * Description: Receive payments using the South African Paygate payments provider.
  * Author: Payfast (Pty) Ltd
  * Author URI: https://payfast.io/
- * Version: 1.4.7
+ * Version: 1.4.8
  * Requires at least: 5.6
- * Tested up to: 6.4.1
- * WC tested up to: 8.3.1
+ * Tested up to: 6.5.3
+ * WC tested up to: 8.9.1
  * WC requires at least: 6.0
  * Requires PHP: 8.0
  *
  * Developer: App Inlet (Pty) Ltd
  * Developer URI: https://www.appinlet.com/
  *
- * Copyright: © 2023 Payfast (Pty) Ltd.
+ * Copyright: © 2024 Payfast (Pty) Ltd.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: paygate-payweb-for-woocommerce
@@ -29,6 +29,7 @@ add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
  * @since 1.0.0
  * @noinspection PhpUnused
  */
+
 use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
 
 function woocommerce_paygate_init()
@@ -102,33 +103,35 @@ function paygate_add_cron_hook()
 
 function paygate_remove_cron_hook()
 {
-    while(wp_next_scheduled('paygate_query_cron_hook')) {
+    while (wp_next_scheduled('paygate_query_cron_hook')) {
         wp_clear_scheduled_hook('paygate_query_cron_hook');
     }
 }
 
-add_action( 'before_woocommerce_init', 'woocommerce_paygatepayweb_declare_hpos_compatibility' );
+add_action('before_woocommerce_init', 'woocommerce_paygatepayweb_declare_hpos_compatibility');
 
 /**
  * Declares support for HPOS.
  *
  * @return void
  */
-function woocommerce_paygatepayweb_declare_hpos_compatibility() {
-    if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+function woocommerce_paygatepayweb_declare_hpos_compatibility()
+{
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
     }
 }
 
-add_action( 'woocommerce_blocks_loaded', 'woocommerce_paygate_woocommerce_blocks_support' );
+add_action('woocommerce_blocks_loaded', 'woocommerce_paygate_woocommerce_blocks_support');
 
-function woocommerce_paygate_woocommerce_blocks_support() {
-    if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+function woocommerce_paygate_woocommerce_blocks_support()
+{
+    if (class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
         require_once dirname(__FILE__) . '/classes/WC_Gateway_PayGate_Blocks_Support.php';
         add_action(
             'woocommerce_blocks_payment_method_type_registration',
-            function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
-                $payment_method_registry->register( new WC_Gateway_PayGate_Blocks_Support );
+            function (Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
+                $payment_method_registry->register(new WC_Gateway_PayGate_Blocks_Support);
             }
         );
     }

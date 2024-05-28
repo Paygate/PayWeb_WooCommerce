@@ -1,13 +1,13 @@
 <?php
 /*
- * Copyright (c) 2023 Payfast (Pty) Ltd
+ * Copyright (c) 2024 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
  * Released under the GNU General Public License
  */
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
@@ -29,97 +29,99 @@ require_once 'WC_Gateway_PayGate_Cron.php';
 class WC_Gateway_PayGate extends WC_Payment_Gateway
 {
 
-    const TEST_PAYGATE_ID                     = '10011072130';
-    const TEST_ENCRYPTION_KEY                 = 'secret';
-    const ID                                  = 'paygate';
-    const NEW_PAYMENT_METHOD_SESSION          = 'wc-paygate-new-payment-method';
-    const PAYGATE_PAYMENT_TOKEN               = 'wc-paygate-payment-token';
-    const ENCRYPTION_KEY                      = 'encryption_key';
-    const TITLE                               = 'title';
-    const PAYGATE_ID_LOWER_CASE               = 'paygate_id';
-    const DESCRIPTION                         = 'description';
-    const MESSAGE                             = 'message';
-    const WC_CLASS                            = 'class';
-    const TESTMODE                            = 'testmode';
-    const CHECKBOX                            = 'checkbox';
-    const DESC_TIP                            = 'desc_tip';
-    const DEFAULT_CONST                       = 'default';
-    const REDIRECT                            = 'redirect';
-    const DISABLENOTIFY                       = 'disablenotify';
-    const ALTERNATECARTHANDLING               = 'alternatecarthandling';
-    const TRANSACTION_STATUS                  = 'TRANSACTION_STATUS';
-    const RESULT_CODE                         = 'RESULT_CODE';
-    const RESULT_DESC                         = 'RESULT_DESC';
-    const PROCESSING                          = 'processing';
-    const COMPLETED                           = 'completed';
-    const FAILED                              = 'failed';
-    const PENDING                             = 'pending';
-    const PAYGATE_ID                          = 'PAYGATE_ID';
-    const PAY_REQUEST_ID                      = 'PAY_REQUEST_ID';
-    const REFERENCE                           = 'REFERENCE';
-    const CHECKSUM                            = 'CHECKSUM';
-    const METHOD                              = 'method';
-    const TIMEOUT                             = 'timeout';
-    const SSLVERIFY                           = 'sslverify';
-    const USER_AGENT                          = 'user-agent';
-    const HTTPVERSION                         = 'httpversion';
-    const ORDER_ID                            = 'order_id';
-    const VAULT                               = 'VAULT';
-    const PAYMENT_TOKEN                       = '-payment-token';
-    const VAULT_ID                            = 'VAULT_ID';
-    const PAYGATE_CHECKOUT_JS                 = 'paygate-checkout-js';
-    const PAYGATE_PAYMETHOD_JS                = 'paygate-paymethod-js';
-    const NEW_PAYMENT_METHOD                  = '-new-payment-method';
-    const PAYVAULT_DATA_1                     = 'PAYVAULT_DATA_1';
-    const PAYVAULT_DATA_2                     = 'PAYVAULT_DATA_2';
-    const PAYVAULT                            = 'PayVault';
-    const ENABLE                              = 'Enable ';
-    const LABEL                               = 'label';
-    const TYPE                                = 'type';
-    const PAY_METHOD_DETAIL                   = 'PAY_METHOD_DETAIL';
-    const TRANSACTION_ID                      = 'TRANSACTION_ID';
-    const PAY_REQUEST_ID_TEXT                 = ' Pay Request Id: ';
-    const BR                                  = '<br/>';
-    const SCRIPT_TAG                          = '";</script>';
-    const SCRIPT_WIN_TOP_LOCAT_HREF           = '<script>window.top.location.href="';
-    const ERROR                               = 'error';
-    const PAYGATE_TRANS_ID                    = '<br/>Paygate Trans Id: ';
+    const TEST_PAYGATE_ID            = '10011072130';
+    const TEST_ENCRYPTION_KEY        = 'secret';
+    const ID                         = 'paygate';
+    const NEW_PAYMENT_METHOD_SESSION = 'wc-paygate-new-payment-method';
+    const PAYGATE_PAYMENT_TOKEN      = 'wc-paygate-payment-token';
+    const ENCRYPTION_KEY             = 'encryption_key';
+    const TITLE                      = 'title';
+    const PAYGATE_ID_LOWER_CASE      = 'paygate_id';
+    const DESCRIPTION                = 'description';
+    const MESSAGE                    = 'message';
+    const WC_CLASS                   = 'class';
+    const TESTMODE                   = 'testmode';
+    const CHECKBOX                   = 'checkbox';
+    const DESC_TIP                   = 'desc_tip';
+    const DEFAULT_CONST              = 'default';
+    const REDIRECT                   = 'redirect';
+    const DISABLENOTIFY              = 'disablenotify';
+    const ALTERNATECARTHANDLING      = 'alternatecarthandling';
+    const TRANSACTION_STATUS         = 'TRANSACTION_STATUS';
+    const RESULT_CODE                = 'RESULT_CODE';
+    const RESULT_DESC                = 'RESULT_DESC';
+    const PROCESSING                 = 'processing';
+    const COMPLETED                  = 'completed';
+    const FAILED                     = 'failed';
+    const PENDING                    = 'pending';
+    const PAYGATE_ID                 = 'PAYGATE_ID';
+    const PAY_REQUEST_ID             = 'PAY_REQUEST_ID';
+    const REFERENCE                  = 'REFERENCE';
+    const CHECKSUM                   = 'CHECKSUM';
+    const METHOD                     = 'method';
+    const TIMEOUT                    = 'timeout';
+    const SSLVERIFY                  = 'sslverify';
+    const USER_AGENT                 = 'user-agent';
+    const HTTPVERSION                = 'httpversion';
+    const ORDER_ID                   = 'order_id';
+    const VAULT                      = 'VAULT';
+    const PAYMENT_TOKEN              = '-payment-token';
+    const VAULT_ID                   = 'VAULT_ID';
+    const PAYGATE_CHECKOUT_JS        = 'paygate-checkout-js';
+    const PAYGATE_PAYMETHOD_JS       = 'paygate-paymethod-js';
+    const NEW_PAYMENT_METHOD         = '-new-payment-method';
+    const PAYVAULT_DATA_1            = 'PAYVAULT_DATA_1';
+    const PAYVAULT_DATA_2            = 'PAYVAULT_DATA_2';
+    const PAYVAULT                   = 'PayVault';
+    const ENABLE                     = 'Enable ';
+    const LABEL                      = 'label';
+    const TYPE                       = 'type';
+    const PAY_METHOD_DETAIL          = 'PAY_METHOD_DETAIL';
+    const TRANSACTION_ID             = 'TRANSACTION_ID';
+    const PAY_REQUEST_ID_TEXT        = ' Pay Request Id: ';
+    const BR                         = '<br/>';
+    const SCRIPT_TAG                 = '";</script>';
+    const SCRIPT_WIN_TOP_LOCAT_HREF  = '<script>window.top.location.href="';
+    const ERROR                      = 'error';
+    const PAYGATE_TRANS_ID           = '<br/>Paygate Trans Id: ';
 
     // Payment methods
-    const CREDIT_CARD                         = 'pw3_credit_card';
-    const BANK_TRANSFER                       = 'pw3_bank_transfer';
-    const ZAPPER                              = 'pw3_e_zapper';
-    const SNAPSCAN                            = 'pw3_e_snapscan';
-    const PAYPAL                              = 'pw3_e_paypal';
-    const MOBICRED                            = 'pw3_e_mobicred';
-    const MOMOPAY                             = 'pw3_e_momopay';
-    const SCANTOPAY                          = 'pw3_e_scantopay';
-    const CREDIT_CARD_METHOD                  = 'CC';
-    const BANK_TRANSFER_METHOD                = 'BT';
-    const ZAPPER_METHOD                       = 'EW-ZAPPER';
-    const SNAPSCAN_METHOD                     = 'EW-SNAPSCAN';
-    const PAYPAL_METHOD                       = 'EW-PAYPAL';
-    const MOBICRED_METHOD                     = 'EW-MOBICRED';
-    const MOMOPAY_METHOD                      = 'EW-MOMOPAY';
-    const SCANTOPAY_METHOD                    = 'EW-MASTERPASS';
-    const SAMSUNG_PAY                         = 'EW-SAMSUNGPAY';
-    const APPLE_PAY                           = 'CC-APPLEPAY';
-    const RCS_METHOD                          = 'EW-RCS';
+    const CREDIT_CARD          = 'pw3_credit_card';
+    const BANK_TRANSFER        = 'pw3_bank_transfer';
+    const ZAPPER               = 'pw3_e_zapper';
+    const SNAPSCAN             = 'pw3_e_snapscan';
+    const PAYPAL               = 'pw3_e_paypal';
+    const MOBICRED             = 'pw3_e_mobicred';
+    const MOMOPAY              = 'pw3_e_momopay';
+    const SCANTOPAY            = 'pw3_e_scantopay';
+    const CREDIT_CARD_METHOD   = 'CC';
+    const BANK_TRANSFER_METHOD = 'BT';
+    const ZAPPER_METHOD        = 'EW-Zapper';
+    const SNAPSCAN_METHOD      = 'EW-Snapscan';
+    const PAYPAL_METHOD        = 'EW-Paypal';
+    const MOBICRED_METHOD      = 'EW-Mobicred';
+    const MOMOPAY_METHOD       = 'EW-Momopay';
+    const SCANTOPAY_METHOD     = 'EW-MasterPass';
+    const SAMSUNG_PAY          = 'EW-Samsungpay';
+    const APPLE_PAY            = 'CC-Applepay';
+    const RCS_METHOD           = 'CC-RCS';
 
     // Payment method descriptions
-    const CREDIT_CARD_DESCRIPTION             = 'Card';
-    const BANK_TRANSFER_DESCRIPTION           = 'SiD Secure EFT';
-    const BANK_TRANSFER_METHOD_DETAIL         = 'SID';
-    const ZAPPER_DESCRIPTION                  = 'Zapper';
-    const SNAPSCAN_DESCRIPTION                = 'SnapScan';
-    const PAYPAL_DESCRIPTION                  = 'PayPal';
-    const MOBICRED_DESCRIPTION                = 'Mobicred';
-    const MOMOPAY_DESCRIPTION                 = 'MoMoPay';
-    const MOMOPAY_METHOD_DETAIL               = 'Momopay';
-    const SCANTOPAY_DESCRIPTION              = 'MasterPass';
-    const SAMSUNG_DESCRIPTION                = 'Samsung Pay';
-    const APPLE_DESCRIPTION                  = 'ApplePay';
-    const RCS_DESCRIPTION                    = 'RCS';
+    const CREDIT_CARD_DESCRIPTION     = 'Card';
+    const BANK_TRANSFER_DESCRIPTION   = 'SiD Secure EFT';
+    const BANK_TRANSFER_METHOD_DETAIL = 'SID';
+    const ZAPPER_DESCRIPTION          = 'Zapper';
+    const SNAPSCAN_DESCRIPTION        = 'SnapScan';
+    const PAYPAL_DESCRIPTION          = 'PayPal';
+    const MOBICRED_DESCRIPTION        = 'Mobicred';
+    const MOMOPAY_DESCRIPTION         = 'MoMoPay';
+    const MOMOPAY_METHOD_DETAIL       = 'Momopay';
+    const SCANTOPAY_DESCRIPTION       = 'MasterPass';
+    const SAMSUNG_DESCRIPTION         = 'Samsung Pay';
+    const SAMSUNG_PAY_METHOD_DETAIL   = 'Samsungpay';
+    const APPLE_DESCRIPTION           = 'ApplePay';
+    const APPLEPAY_METHOD_DETAIL      = 'Applepay';
+    const RCS_DESCRIPTION             = 'RCS';
 
 
     const ON_CHECKOUT                         = ' on Checkout';
@@ -135,7 +137,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const ORDER_META_REFERENCE_PLACEHOLDER    = 'Add order meta to the payment reference using a meta key (e.g. _billing_first_name)';
     const LOGGING                             = 'logging';
 
-    public $version = '1.4.7';
+    public $version = '1.4.8';
 
     public $id = 'paygate';
 
@@ -176,9 +178,9 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         self::PAYPAL_METHOD        => self::PAYPAL_DESCRIPTION,
         self::MOBICRED_METHOD      => self::MOBICRED_DESCRIPTION,
         self::MOMOPAY_METHOD       => self::MOMOPAY_METHOD_DETAIL,
-        self::SCANTOPAY_METHOD    => self::SCANTOPAY_DESCRIPTION,
-        self::APPLE_PAY            => self::APPLE_DESCRIPTION,
-        self::SAMSUNG_PAY          => self::SAMSUNG_DESCRIPTION,
+        self::SCANTOPAY_METHOD     => self::SCANTOPAY_DESCRIPTION,
+        self::APPLE_PAY            => self::APPLEPAY_METHOD_DETAIL,
+        self::SAMSUNG_PAY          => self::SAMSUNG_PAY_METHOD_DETAIL,
         self::RCS_METHOD           => self::RCS_DESCRIPTION
     ];
 
@@ -208,8 +210,8 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->init_form_fields();
         $this->init_settings();
         if (isset($this->settings[self::TESTMODE]) && $this->settings[self::TESTMODE] == 'no') {
-            $this->merchant_id    = isset($this->settings[self::PAYGATE_ID_LOWER_CASE]) ? $this->settings[self::PAYGATE_ID_LOWER_CASE] : '';
-            $this->encryption_key = isset($this->settings[self::ENCRYPTION_KEY]) ? $this->settings[self::ENCRYPTION_KEY] : '';
+            $this->merchant_id    = $this->settings[self::PAYGATE_ID_LOWER_CASE] ?? '';
+            $this->encryption_key = $this->settings[self::ENCRYPTION_KEY] ?? '';
         } else {
             $this->form_fields = WC_Gateway_PayGate_Admin_Actions::add_testmode_admin_settings_notice(
                 $this->form_fields
@@ -219,15 +221,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         $wcsession = WC()->session;
 
-        if (self::$wc_logger === null) {
-            self::$wc_logger = wc_get_logger();
-        }
+        $this->setupWooLogger();
 
-        if (isset($this->settings[self::LOGGING]) && $this->settings[self::LOGGING] === 'yes') {
-            $this->logging = true;
-        }
+        $this->setupLoggingSetting();
 
-        if ( ! empty($_POST)) {
+        if (!empty($_POST)) {
             if (isset($_POST[self::NEW_PAYMENT_METHOD_SESSION])) {
                 if ($wcsession) {
                     $wcsession->set(self::NEW_PAYMENT_METHOD_SESSION, '1');
@@ -277,23 +275,19 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             self::ID
         );
         $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_logo.svg';
-        if (isset($this->settings['paygateplus']) && $this->settings['paygateplus'] === 'yes') {
-            $this->icon = $this->get_plugin_url() . '/assets/images/PayGate_Plus_logo.svg';
-        }
+        $this->checkPaygatePlus();
         $this->has_fields = true;
         $this->supports   = array(
             'products',
         );
 
         // Define user set variables
-        $this->title             = isset($this->settings[self::TITLE]) ? $this->settings[self::TITLE] : '';
-        $this->order_button_text = isset($this->settings['button_text']) ? $this->settings['button_text'] : '';
-        $this->description       = isset($this->settings[self::DESCRIPTION]) ? $this->settings[self::DESCRIPTION] : '';
-        $this->payVault          = isset($this->settings['payvault']) ? $this->settings['payvault'] : '';
+        $this->title             = $this->settings[self::TITLE] ?? '';
+        $this->order_button_text = $this->settings['button_text'] ?? '';
+        $this->description       = $this->settings[self::DESCRIPTION] ?? '';
+        $this->payVault          = $this->settings['payvault'] ?? '';
 
-        if ($this->payVault == 'yes') {
-            $this->supports[] = 'tokenization';
-        }
+        $this->checkPayVault();
 
         $this->msg[self::MESSAGE]  = "";
         $this->msg[self::WC_CLASS] = "";
@@ -301,7 +295,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->notify_url   = add_query_arg('wc-api', 'WC_Gateway_PayGate_Notify', home_url('/'));
         $this->redirect_url = add_query_arg('wc-api', 'WC_Gateway_PayGate_Redirect', home_url('/'));
 
-        $order_meta_reference = isset($this->settings[self::ORDER_META_REFERENCE]) ? $this->settings[self::ORDER_META_REFERENCE] : '';
+        $order_meta_reference = $this->settings[self::ORDER_META_REFERENCE] ?? '';
         if (strlen($order_meta_reference) > 0) {
             $this->order_meta_reference = $order_meta_reference;
         }
@@ -309,9 +303,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $customPGReference = false;
 
 
-        if (isset($this->settings[self::PG_REFERENCE_TYPE]) && $this->settings[self::PG_REFERENCE_TYPE] === 'yes') {
-            $customPGReference = true;
-        }
+        $customPGReference = $this->setupCustomReference($customPGReference);
 
         $this->customPGReference = $customPGReference;
 
@@ -319,15 +311,81 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         $this->setCardMethods();
     }
 
-    public static function show_cart_messages($messages)
+    public static function show_cart_messages($messages): void
     {
         if (isset($_GET['order_id'])) {
             $order_id      = filter_var($_GET['order_id'], FILTER_SANITIZE_NUMBER_INT);
-            $order = wc_get_order($order_id);
+            $order         = wc_get_order($order_id);
             $orderMessages = $order->get_meta('paygate_error');
             $orderMessage  = is_array($orderMessages) ? $orderMessages[count($orderMessages) - 1] : $orderMessages;
 
             echo '<h3 style="color: red;">' . esc_html($orderMessage) . '</h3>';
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function checkCardMethodsEnabled(): void
+    {
+        foreach ($this->settings as $key => $setting) {
+            if (str_starts_with($key, 'pw3_') && $setting !== 'no' && $key !== 'pw3_credit_card') {
+                $this->pw3_card_methods_enabled = true;
+            }
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function setupWooLogger(): void
+    {
+        if (self::$wc_logger === null) {
+            self::$wc_logger = wc_get_logger();
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function setupLoggingSetting(): void
+    {
+        if (isset($this->settings[self::LOGGING]) && $this->settings[self::LOGGING] === 'yes') {
+            $this->logging = true;
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function checkPayVault(): void
+    {
+        if ($this->payVault == 'yes') {
+            $this->supports[] = 'tokenization';
+        }
+    }
+
+    /**
+     * @param true $customPGReference
+     *
+     * @return true
+     */
+    public function setupCustomReference($customPGReference): bool
+    {
+        if (isset($this->settings[self::PG_REFERENCE_TYPE]) && $this->settings[self::PG_REFERENCE_TYPE] === 'yes') {
+            $customPGReference = true;
+        }
+
+        return $customPGReference;
+    }
+
+    /**
+     * @return void
+     */
+    public function checkPaygatePlus(): void
+    {
+        if (isset($this->settings['paygateplus']) && $this->settings['paygateplus'] === 'yes') {
+            $this->icon = $this->get_plugin_url() . '/assets/images/PayGate_Plus_logo.svg';
         }
     }
 
@@ -340,7 +398,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
      */
     protected function custom_print_notices($return = false)
     {
-        if ( ! did_action('woocommerce_init')) {
+        if (!did_action('woocommerce_init')) {
             wc_doing_it_wrong(
                 __FUNCTION__,
                 __('This function should not be called before woocommerce_init.', 'woocommerce'),
@@ -361,7 +419,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 $messages = array();
 
                 foreach ($all_notices[$notice_type] as $notice) {
-                    $messages[] = isset($notice['notice']) ? $notice['notice'] : $notice;
+                    $messages[] = $notice['notice'] ?? $notice;
                 }
 
                 wc_get_template(
@@ -384,7 +442,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     /**
      * Processes redirect from pay portal
      */
-    public function check_paygate_response()
+    public function check_paygate_response(): void
     {
         $check = new WC_Gateway_PayGate_Portal();
         $check->check_paygate_response();
@@ -393,18 +451,18 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     /**
      * Processes IPN notification from pay portal
      */
-    public function check_paygate_notify_response()
+    public function check_paygate_notify_response(): void
     {
         $check = new WC_Gateway_PayGate_Portal();
         $check->check_paygate_notify_response();
     }
 
-    public function check_paygate_cron_response()
+    public function check_paygate_cron_response(): void
     {
         WC_Gateway_PayGate_Cron::paygate_order_query_cron();
     }
 
-    public function check_paygate_cron_response_site()
+    public function check_paygate_cron_response_site(): void
     {
         WC_Gateway_PayGate_Cron::paygate_order_query_cron_site();
     }
@@ -571,7 +629,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::PAYPAL              => array(
+            self::PAYPAL                => array(
                 self::TITLE         => __(self::ENABLE . self::PAYPAL_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::PAYPAL_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
@@ -595,7 +653,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::SCANTOPAY            => array(
+            self::SCANTOPAY             => array(
                 self::TITLE         => __(self::ENABLE . self::SCANTOPAY_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::SCANTOPAY_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
@@ -603,7 +661,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::APPLE_PAY => array(
+            self::APPLE_PAY             => array(
                 self::TITLE         => __(self::ENABLE . self::APPLE_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::APPLE_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
@@ -611,7 +669,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::SAMSUNG_PAY => array(
+            self::SAMSUNG_PAY           => array(
                 self::TITLE         => __(self::ENABLE . self::SAMSUNG_DESCRIPTION . self::ON_CHECKOUT, self::ID),
                 self::LABEL         => self::SAMSUNG_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
@@ -627,7 +685,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
-            self::PG_REFERENCE_TYPE              => array(
+            self::PG_REFERENCE_TYPE     => array(
                 self::TITLE         => __(self::PG_REFERENCE_DESCRIPTION, self::ID),
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __(self::PG_REFERENCE_PLACEHOLDER, self::ID),
@@ -698,14 +756,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
      */
     public function payment_fields()
     {
-        if ($this->payVault == 'yes' && ! empty($_POST)) {
+        if ($this->payVault == 'yes' && !empty($_POST)) {
             // Display stored credit card selection
             $tokens       = WC_Payment_Tokens::get_customer_tokens(get_current_user_id(), $this->id);
             $defaultToken = WC_Payment_Tokens::get_customer_default_token(get_current_user_id());
             if (count($tokens) > 0) {
                 $this->showTokens($defaultToken, $tokens);
             } else {
-                $token = 'wc-' . esc_attr($this->id) . '-payment-token';
+                $token      = 'wc-' . esc_attr($this->id) . '-payment-token';
                 $new_method = 'wc-' . esc_attr($this->id) . '-new-payment-method';
                 echo <<<HTML
 <div name="$token" >
@@ -740,7 +798,13 @@ HTML;
                 $html .= '<tr>';
                 if ($pw_3_card_method['value'] !== '') {
                     $quickSelectPaymentMethods = true;
-                    $html                      .= '<td class="card_method" ><input type="radio" name="sub_payment_method" value="' . esc_attr($pw_3_card_method['value']) . '" >&nbsp;' . (esc_html($pw_3_card_method['description']) === "MasterPass" ? "ScanToPay" : esc_html($pw_3_card_method['description'])) . '</td>';
+                    $html                      .= '<td class="card_method" ><input type="radio" name="sub_payment_method" value="' . esc_attr(
+                            $pw_3_card_method['value']
+                        ) . '" >&nbsp;' . (esc_html(
+                                               $pw_3_card_method['description']
+                                           ) === "MasterPass" ? "ScanToPay" : esc_html(
+                            $pw_3_card_method['description']
+                        )) . '</td>';
                     $html                      .= '<td class="pay_method_image">';
                     $html                      .= '<img src="' . esc_url(
                             WC_HTTPS::force_https_url($pw_3_card_method['image'])
@@ -758,7 +822,7 @@ HTML;
                 jQuery( document ).ready(function() {
                     if (window.ApplePaySession === undefined) {
                         // Apple Pay is not available, so let's hide the specific input element
-                        var applePayElement = jQuery('input[value="CC-APPLEPAY"]');
+                        var applePayElement = jQuery('input[value="CC-Applepay"]');
                         
                         applePayElement.parent().parent().remove();
                     }
@@ -768,13 +832,13 @@ HTML;
 
             if ($quickSelectPaymentMethods) {
                 $allowed_tags = array_replace_recursive(
-                        wp_kses_allowed_html('post'),
+                    wp_kses_allowed_html('post'),
                     [
                         'script' => [],
-                        'input' => [
-                            'name' => true,
+                        'input'  => [
+                            'name'  => true,
                             'value' => true,
-                            'type' => true,
+                            'type'  => true,
                         ]
                     ]
                 );
@@ -783,9 +847,9 @@ HTML;
         }
     }
 
-    public function process_review_payment()
+    public function process_review_payment(): void
     {
-        if ( ! empty($_POST[self::ORDER_ID])) {
+        if (!empty($_POST[self::ORDER_ID])) {
             $this->process_payment(filter_var($_POST[self::ORDER_ID], FILTER_SANITIZE_STRING));
         }
     }
@@ -813,7 +877,7 @@ HTML;
      * @since 1.0.0
      *
      */
-    public function process_payment($order_id)
+    public function process_payment($order_id): array
     {
         $order = new WC_Order($order_id);
 
@@ -868,7 +932,7 @@ HTML;
      * @since 1.0.0
      *
      */
-    public function show_message($content)
+    public function show_message($content): string
     {
         return '<div class="' . $this->msg[self::WC_CLASS] . '">' . $this->msg[self::MESSAGE] . '</div>' . $content;
     }
@@ -879,7 +943,7 @@ HTML;
      *
      * @since 1.0.0
      */
-    public function paygate_payment_scripts()
+    public function paygate_payment_scripts(): void
     {
         wp_enqueue_style(
             'paygate-checkout-css',
@@ -906,7 +970,7 @@ HTML;
     /**
      * @return int|null
      */
-    public function get_order_id_order_pay()
+    public function get_order_id_order_pay(): ?int
     {
         global $wp;
 
@@ -938,18 +1002,18 @@ HTML;
             wp_kses_allowed_html('post'),
             [
                 'script' => [],
-                'form' => [
+                'form'   => [
                     'action' => true,
                     'method' => true,
-                    'id' => true,
-                    'class' => true,
+                    'id'     => true,
+                    'class'  => true,
                 ],
-                'input' => [
-                    'name' => true,
-                    'type' => true,
+                'input'  => [
+                    'name'  => true,
+                    'type'  => true,
                     'value' => true,
                     'class' => true,
-                    'id' => true,
+                    'id'    => true,
                 ]
             ]
         );
@@ -1042,8 +1106,7 @@ HTML;
     protected function setCardMethods()
     {
         if (isset($this->settings[self::CREDIT_CARD])) {
-
-            $this->pw3_card_methods['credit_card']   =  array(
+            $this->pw3_card_methods['credit_card']   = array(
                 'description' => self::CREDIT_CARD_DESCRIPTION,
                 'value'       => isset($this->settings[self::CREDIT_CARD]) && $this->settings[self::CREDIT_CARD] == 'yes' ? self::CREDIT_CARD_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/mastercard-visa.svg',
@@ -1063,7 +1126,7 @@ HTML;
                 'value'       => isset($this->settings[self::SNAPSCAN]) && $this->settings[self::SNAPSCAN] == 'yes' ? self::SNAPSCAN_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/snapscan.svg',
             );
-            $this->pw3_card_methods['paypal']      = array(
+            $this->pw3_card_methods['paypal']        = array(
                 'description' => self::PAYPAL_DESCRIPTION,
                 'value'       => isset($this->settings[self::PAYPAL]) && $this->settings[self::PAYPAL] == 'yes' ? self::PAYPAL_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/paypal.svg',
@@ -1078,12 +1141,12 @@ HTML;
                 'value'       => isset($this->settings[self::MOMOPAY]) && $this->settings[self::MOMOPAY] == 'yes' ? self::MOMOPAY_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/momopay.svg',
             );
-            $this->pw3_card_methods['scantopay']    = array(
+            $this->pw3_card_methods['scantopay']     = array(
                 'description' => self::SCANTOPAY_DESCRIPTION,
                 'value'       => isset($this->settings[self::SCANTOPAY]) && $this->settings[self::SCANTOPAY] == 'yes' ? self::SCANTOPAY_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/scan-to-pay.svg',
             );
-            $this->pw3_card_methods['applepay']    = array(
+            $this->pw3_card_methods['applepay']      = array(
                 'description' => self::APPLE_DESCRIPTION,
                 'value'       => isset($this->settings[self::APPLE_PAY]) && $this->settings[self::APPLE_PAY] == 'yes' ? self::APPLE_PAY : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/apple-pay.svg',
@@ -1093,7 +1156,7 @@ HTML;
                 'value'       => isset($this->settings[self::SAMSUNG_PAY]) && $this->settings[self::SAMSUNG_PAY] == 'yes' ? self::SAMSUNG_PAY : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/samsung-pay.svg',
             );
-            $this->pw3_card_methods['rcs']    = array(
+            $this->pw3_card_methods['rcs']           = array(
                 'description' => self::RCS_DESCRIPTION,
                 'value'       => isset($this->settings[self::RCS_METHOD]) && $this->settings[self::RCS_METHOD] == 'yes' ? self::RCS_METHOD : '',
                 'image'       => $this->get_plugin_url() . '/assets/images/rcs.svg',
@@ -1101,21 +1164,15 @@ HTML;
         }
 
         $this->pw3_card_methods = apply_filters('fnb_paygate_payweb_payment_types', $this->pw3_card_methods)
-        ?? $this->pw3_card_methods;
+                                  ?? $this->pw3_card_methods;
 
-        foreach ($this->settings as $key => $setting) {
-            if (strpos($key, 'pw3_') === 0) {
-                if ($setting !== 'no' && $key !== 'pw3_credit_card') {
-                    $this->pw3_card_methods_enabled = true;
-                }
-            }
-        }
+        $this->checkCardMethodsEnabled();
     }
 
     /**
      * Helper for constructor
      */
-    protected function addActions()
+    protected function addActions(): void
     {
         add_action(
             'woocommerce_api_wc_gateway_paygate_redirect',
@@ -1172,7 +1229,8 @@ HTML;
             array(
                 $this,
                 'receipt_page',
-            )
+            ),
+            99
         );
 
         add_action('wp_ajax_order_pay_payment', array($this, 'process_review_payment'));
@@ -1186,7 +1244,7 @@ HTML;
      *
      * @return array|object|null
      */
-    protected static function getOrderNotes($order_id)
+    protected static function getOrderNotes($order_id): object|array|null
     {
         global $wpdb;
 
@@ -1230,8 +1288,8 @@ HTML;
                 }
 
                 $option_value = esc_attr($token->get_token());
-                $card_type = esc_html($cardType);
-                $last4 = esc_html($token->get_last4());
+                $card_type    = esc_html($cardType);
+                $last4        = esc_html($token->get_last4());
                 echo <<<HTML
                      <option value="{$option_value}" {$selected}>Use {$card_type} ending in {$last4}</option> }
 HTML;

@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2023 Payfast (Pty) Ltd
+ * Copyright (c) 2024 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -30,7 +30,7 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
      */
     public function initialize()
     {
-        $this->settings = get_option('woocommerce_paygate_settings', []);
+        $this->settings        = get_option('woocommerce_paygate_settings', []);
         $this->paygate_gateway = new WC_Gateway_PayGate();
     }
 
@@ -42,7 +42,7 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
     public function is_active()
     {
         $payment_gateways_class = WC()->payment_gateways();
-        $payment_gateways = $payment_gateways_class->payment_gateways();
+        $payment_gateways       = $payment_gateways_class->payment_gateways();
 
         return $payment_gateways['paygate']->is_available();
     }
@@ -55,14 +55,14 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
     public function get_payment_method_script_handles()
     {
         $parent_directory_path = dirname(__FILE__, 2);
-        $plugin_url = $this->paygate_gateway->get_plugin_url();
-        $indexJsPath = $plugin_url . '/assets/js/index.js';
-        $asset_path = $parent_directory_path . '/assets/js/index.asset.php';
-        $version = $this->paygate_gateway->version;
-        $dependencies = [];
+        $plugin_url            = $this->paygate_gateway->get_plugin_url();
+        $indexJsPath           = $plugin_url . '/assets/js/index.js';
+        $asset_path            = $parent_directory_path . '/assets/js/index.asset.php';
+        $version               = $this->paygate_gateway->version;
+        $dependencies          = [];
         if (file_exists($asset_path)) {
-            $asset = require $asset_path;
-            $version = is_array($asset) && isset($asset['version'])
+            $asset        = require $asset_path;
+            $version      = is_array($asset) && isset($asset['version'])
                 ? $asset['version']
                 : $version;
             $dependencies = is_array($asset) && isset($asset['dependencies'])
@@ -80,6 +80,7 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
             'wc-paygate-blocks-integration',
             'woocommerce'
         );
+
         return ['wc-paygate-blocks-integration'];
     }
 
@@ -91,10 +92,10 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
     public function get_payment_method_data()
     {
         return [
-            'title' => $this->get_setting('title'),
+            'title'       => $this->get_setting('title'),
             'description' => $this->get_setting('description'),
-            'supports' => $this->get_supported_features(),
-            'logo_url' => $this->paygate_gateway->get_plugin_url() . '/assets/images/PayGate_logo.svg',
+            'supports'    => $this->get_supported_features(),
+            'logo_url'    => $this->paygate_gateway->get_plugin_url() . '/assets/images/PayGate_logo.svg',
         ];
     }
 
@@ -106,6 +107,7 @@ final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
     public function get_supported_features()
     {
         $payment_gateways = WC()->payment_gateways->payment_gateways();
+
         return $payment_gateways['paygate']->supports;
     }
 }
