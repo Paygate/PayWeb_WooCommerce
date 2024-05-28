@@ -2,9 +2,9 @@
 Contributors: appinlet
 Tags: ecommerce, e-commerce, woocommerce, automattic, payment, paygate, app inlet, credit card, payment request
 Requires at least: 5.6
-Tested up to: 6.4.1
+Tested up to: 6.5.3
 Requires PHP: 8.0
-Stable tag: 1.4.7
+Stable tag: 1.4.8
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,10 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
 4. WooCommerce Admin Paygate Additional Settings continued
 
 == Changelog ==
+= 1.4.8 - 2024-05-28 =
+ * Tested on WooCommerce 8.9.1, PHP 8.1 and WordPress 6.5.3.
+ * Fix payment types compatibility.
+
 = 1.4.7 - 2023-11-22 =
  * Tested on WooCommerce 8.3.1, PHP 8.0 and WordPress 6.4.1.
  * Add support for HPOS and Blocks.
@@ -53,17 +57,15 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
  * Tested on WooCommerce 6.7.0, PHP 8.0 and WordPress 6.0.1.
  * Fix multi-domain multisite network activation.
  * Fix invalid checksum message if order is already paid.
-
-= 1.4.5 - 2022-01-04 =
- * Tested on WooCommerce 6.0 and WordPress 5.8.
- * Implement payment type filter hooks.
- * Update Masterpass to Scan to Pay.
- * Add transient in notify handler to curb duplicate transactions.
 
 [See changelog for all versions](https://raw.githubusercontent.com/PayGate/PayWeb_WooCommerce/master/changelog.txt).
 
 == Upgrade Notice ==
 
+= 1.4.8 - 2024-05-28 =
+ * Tested on WooCommerce 8.9.1, PHP 8.1 and WordPress 6.5.3.
+ * Fix payment types compatibility.
+
 = 1.4.7 - 2023-11-22 =
  * Tested on WooCommerce 8.3.1, PHP 8.0 and WordPress 6.4.1.
  * Add support for HPOS and Blocks.
@@ -74,9 +76,3 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
  * Tested on WooCommerce 6.7.0, PHP 8.0 and WordPress 6.0.1.
  * Fix multi-domain multisite network activation.
  * Fix invalid checksum message if order is already paid.
-
-= 1.4.5 - 2022-01-04 =
- * Tested on WooCommerce 6.0 and WordPress 5.8.
- * Implement payment type filter hooks.
- * Update Masterpass to Scan to Pay.
- * Add transient in notify handler to curb duplicate transactions.

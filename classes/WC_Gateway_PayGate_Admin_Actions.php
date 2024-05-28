@@ -1,13 +1,13 @@
 <?php
 /*
- * Copyright (c) 2023 Payfast (Pty) Ltd
+ * Copyright (c) 2024 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
  * Released under the GNU General Public License
  */
 
-if ( ! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
@@ -78,12 +78,12 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
         $transactionStatus = $gwp->paywebQueryStatus($response);
 
         if ((int)$transactionStatus === 1) {
-            if ( ! $order->has_status(self::PROCESSING) && ! $order->has_status(self::COMPLETED)) {
+            if (!$order->has_status(self::PROCESSING) && !$order->has_status(self::COMPLETED)) {
                 $order->payment_complete();
                 $responseText .= "<br>Order set to \"Processing\"";
             }
         } else {
-            if ( ! $order->has_status(self::FAILED)) {
+            if (!$order->has_status(self::FAILED)) {
                 $order->update_status(self::FAILED);
             }
         }
