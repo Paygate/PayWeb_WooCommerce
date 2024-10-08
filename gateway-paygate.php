@@ -5,10 +5,10 @@
  * Description: Receive payments using the South African Paygate payments provider.
  * Author: Payfast (Pty) Ltd
  * Author URI: https://payfast.io/
- * Version: 1.4.8
+ * Version: 1.4.9
  * Requires at least: 5.6
- * Tested up to: 6.5.3
- * WC tested up to: 8.9.1
+ * Tested up to: 6.6.2
+ * WC tested up to: 9.3.2
  * WC requires at least: 6.0
  * Requires PHP: 8.0
  *
@@ -31,7 +31,17 @@ add_action('plugins_loaded', 'woocommerce_paygate_init', 0);
  */
 
 use Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry;
+add_action('woocommerce_receipt_paygate', 'custom_function_after_order_placed', 10, 1);
 
+function custom_function_after_order_placed($order_id) {
+    wp_enqueue_script(
+        'classic-checkout',
+        plugins_url( 'assets-classic/js/classic-checkout.js', __FILE__ ),
+        array(),
+        '1.4.9',
+        true
+    );
+}
 function woocommerce_paygate_init()
 {
     if (!class_exists('WC_Payment_Gateway')) {

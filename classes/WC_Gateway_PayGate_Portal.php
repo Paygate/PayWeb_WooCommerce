@@ -193,9 +193,6 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
         if (!is_wp_error($parsed_response)) {
             unset($parsed_response[self::CHECKSUM]);
             $checksum       = esc_attr(md5(implode('', $parsed_response) . $this->encryption_key));
-            $buttonText     = esc_attr__($this->order_button_text, self::ID);
-            $cancelUrl      = esc_url($order->get_cancel_order_url());
-            $cancelText     = esc_html__('Cancel order &amp; restore cart', self::ID);
             $process_url    = esc_url($this->process_url);
             $pay_request_id = esc_attr($parsed_response[self::PAY_REQUEST_ID]);
 
@@ -204,29 +201,6 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
     <input name="PAY_REQUEST_ID" type="hidden" value="{$pay_request_id}" />
     <input name="CHECKSUM" type="hidden" value="{$checksum}" />
 </form>
-<script>
-jQuery(document).ready(function(){
-    jQuery(function(){
-        jQuery("body").block({
-            message: "",
-            overlayCSS: {
-                background: "#fff",
-                opacity: 0.6
-            },
-            css: {
-                padding:        20,
-                textAlign:      "center",
-                color:          "#555",
-                border:         "3px solid #aaa",
-                backgroundColor:"#fff",
-                cursor:         "wait"
-            }
-        });
-    });
-
-    jQuery("#paygate_payment_form").submit();
-});
-</script>
 HTML;
         } else {
             echo esc_html($parsed_response->get_error_message());
