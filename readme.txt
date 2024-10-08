@@ -2,9 +2,9 @@
 Contributors: appinlet
 Tags: ecommerce, e-commerce, woocommerce, automattic, payment, paygate, app inlet, credit card, payment request
 Requires at least: 5.6
-Tested up to: 6.5.3
+Tested up to: 6.6.2
 Requires PHP: 8.0
-Stable tag: 1.4.8
+Stable tag: 1.4.9
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -43,6 +43,10 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
 4. WooCommerce Admin Paygate Additional Settings continued
 
 == Changelog ==
+= 1.4.9 - 2024-10-08 =
+ * Tested on WooCommerce 9.3.2, PHP 8.1 and WordPress 6.6.2.
+ * Fix inline script blocking redirect to pay page.
+
 = 1.4.8 - 2024-05-28 =
  * Tested on WooCommerce 8.9.1, PHP 8.1 and WordPress 6.5.3.
  * Fix payment types compatibility.
@@ -61,6 +65,9 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
 [See changelog for all versions](https://raw.githubusercontent.com/PayGate/PayWeb_WooCommerce/master/changelog.txt).
 
 == Upgrade Notice ==
+= 1.4.9 - 2024-10-08 =
+ * Tested on WooCommerce 9.3.2, PHP 8.1 and WordPress 6.6.2.
+ * Fix inline script blocking redirect to pay page.
 
 = 1.4.8 - 2024-05-28 =
  * Tested on WooCommerce 8.9.1, PHP 8.1 and WordPress 6.5.3.
@@ -72,7 +79,3 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
  * Add Apple Pay, Samsung Pay and RCS Payment Types.
  * Other fixes and improvements.
 
-= 1.4.6 - 2022-07-14 =
- * Tested on WooCommerce 6.7.0, PHP 8.0 and WordPress 6.0.1.
- * Fix multi-domain multisite network activation.
- * Fix invalid checksum message if order is already paid.
