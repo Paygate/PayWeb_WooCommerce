@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2024 Payfast (Pty) Ltd
+ * Copyright (c) 2025 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -107,7 +107,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             $payweb   = new PaymentRequest($this->merchant_id, $this->encryption_key);
             $response = $payweb->initiate($this->data_to_send);
         } catch (Exceptione $e) {
-            echo 'Error initiating transaction: ' . $e->getMessage();
+            echo esc_html('Error initiating transaction: ' . $e->getMessage());
         }
 
         parse_str($response, $parsed_response);
@@ -120,16 +120,18 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             $this->msg[self::MESSAGE]  = "Thank you for shopping with us. However, we were unable to initiate your payment. Please try again.";
             $this->isOrderFailed($order, $response);
 
+            $cancel_text   = __('Cancel order &amp; restore cart', 'paygate-payweb-for-woocommerce');
+            $cancel_link   = '<br><a class="button wc-forward" href="' . esc_url(
+                    $order->get_cancel_order_url()
+                ) . '">' . $cancel_text . '</a>';
+            $error_message = $this->show_message($cancel_link);
+
             return new WP_Error(
                 'paygate-error',
-                __(
-                    $this->show_message(
-                        '<br><a class="button wc-forward" href="' . esc_url($order->get_cancel_order_url()) . '">' . __(
-                            'Cancel order &amp; restore cart',
-                            self::ID
-                        ) . '</a>'
-                    ),
-                    self::ID
+                sprintf(
+                // translators: %s is the error message returned by the payment gateway.
+                    __('Payment error: %s', 'paygate-payweb-for-woocommerce'),
+                    $error_message
                 )
             );
         } else {
@@ -169,7 +171,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             $payweb          = new PaymentRequest($this->merchant_id, $this->encryption_key);
             $parsed_response = $this->initiate_transaction($order_id);
         } catch (Exception $e) {
-            echo 'Error initiating transaction: ' . $e->getMessage();
+            echo esc_html('Error initiating transaction: ' . $e->getMessage());
         }
 
         if ($this->settings[self::ALTERNATECARTHANDLING] == 'yes') {
@@ -181,6 +183,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
             $checksum       = esc_attr(md5(implode('', $parsed_response) . $this->encryption_key));
             $pay_request_id = esc_attr($parsed_response[self::PAY_REQUEST_ID]);
 
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- getRedirectHTML() returns trusted redirect HTML
             echo $payweb->getRedirectHTML($pay_request_id, $checksum);
         } else {
             echo esc_html($parsed_response->get_error_message());
@@ -195,6 +198,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
     public function check_paygate_response(): void
     {
         $this->logging ? self::$wc_logger->add('paygatepayweb', 'Redirect POST: ' . json_encode($_POST)) : '';
+
         // Sanitise GET and POST arrays
         $post = $this->sanitizeFields($_POST);
         $get  = $this->sanitizeFields($_GET);
@@ -226,7 +230,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
         $reference      = $this->getOrderReference($order);
 
         if (!$this->validateChecksum($post, $reference) && !$order->is_paid()) {
-            $order->update_status(self::PENDING, __('Checksum failed'));
+            $order->update_status(self::PENDING, __('Checksum failed', 'paygate-payweb-for-woocommerce'));
             exit();
         }
 
@@ -250,7 +254,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
 
             $this->processOrderFinal($status, $order, $transaction_id, $result_desc, $pay_request_id);
         } catch (Exception $e) {
-            echo 'Error during PayWeb query: ' . $e->getMessage();
+            echo esc_html('Error during PayWeb query: ' . $e->getMessage());
         }
     }
 
@@ -346,8 +350,8 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
                     );
                     $order->update_status(self::PENDING);
                 }
-                $redirect_link = $this->get_return_url($order);
-                echo self::SCRIPT_WIN_TOP_LOCAT_HREF . esc_html($redirect_link) . self::SCRIPT_TAG;
+                $redirect_link = self::SCRIPT_WIN_TOP_LOCAT_HREF . $this->get_return_url($order) . self::SCRIPT_TAG;
+                echo esc_html($redirect_link);
                 exit;
                 break;
         }
@@ -370,7 +374,7 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
 
             return $parsed_response;
         } catch (Exception $e) {
-            echo 'Error querying transaction: ' . $e->getMessage();
+            echo esc_html('Error querying transaction: ' . $e->getMessage());
 
             return null;
         }
@@ -388,12 +392,11 @@ class WC_Gateway_PayGate_Portal extends WC_Gateway_PayGate
         $resultCode        = !empty($response[self::RESULT_CODE]) ? $response[self::RESULT_CODE] : 'Null';
         $resultDesc        = !empty($response[self::RESULT_DESC]) ? $response[self::RESULT_DESC] : 'Null';
 
-        return <<<RT
-Pay_Request_Id: {$payRequestId}<br>
-Transaction Status: {$transactionStatus} => {$this->paywebStatus[(int)$transactionStatus]}<br>
-Result Code: {$resultCode}<br>
-Result Description: {$resultDesc}
-RT;
+        return
+            'Pay_Request_Id: ' . $payRequestId . '<br>' .
+            'Transaction Status: ' . $transactionStatus . '=>' . $this->paywebStatus[(int)$transactionStatus] . '<br>' .
+            'Result Code: ' . $resultCode . '<br>' .
+            'Result Description: ' . $resultDesc;
     }
 
     /**
@@ -449,7 +452,7 @@ RT;
             }
             if (!$order->has_status(self::FAILED)) {
                 $order->add_order_note('Failed Response via Notify, ' . $this->error_desc . self::BR);
-                $order->update_status(self::PENDING, __('Checksum failed in notify'));
+                $order->update_status(self::PENDING, __('Checksum failed in notify', 'paygate-payweb-for-woocommerce'));
             }
             exit();
         } else {
@@ -498,10 +501,8 @@ RT;
     {
         if (!$order->has_status(self::FAILED)) {
             $order->add_order_note(
-                'Response from initiating payment:' . print_r(
-                    $this->data_to_send,
-                    true
-                ) . ' ' . $response
+                'Response from initiating payment:' .
+                wp_json_encode($this->data_to_send) . ' ' . $response
             );
             $order->update_status(self::FAILED);
         }
@@ -587,7 +588,7 @@ RT;
                 if ($this->settings[self::DISABLENOTIFY] == 'yes') {
                     if (!$order->has_status(self::PENDING)) {
                         $order->add_order_note(
-                            'Response via ' . $this->settings[self::PAYMENT_TYPE] . ', RESULT_DESC: ' . $result_desc . self::PAYGATE_TRANS_ID . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
+                            'Response via ' . ', RESULT_DESC: ' . $result_desc . self::PAYGATE_TRANS_ID . $transaction_id . self::PAY_REQUEST_ID_TEXT . $pay_request_id . self::BR
                         );
                         if (!$order->is_paid()) {
                             $order->update_status(self::PENDING);
@@ -784,7 +785,7 @@ RT;
     {
         $result = [];
         foreach ($fields as $key => $field) {
-            $result[$key] = filter_var($field, FILTER_SANITIZE_STRING);
+            $result[$key] = htmlspecialchars($field, ENT_QUOTES, 'UTF-8');
         }
 
         return $result;

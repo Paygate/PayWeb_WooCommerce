@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2024 Payfast (Pty) Ltd
+ * Copyright (c) 2025 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -23,11 +23,11 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
     {
         $form_fields[self::PAYGATE_ID_LOWER_CASE][self::DESCRIPTION] .= ' <br><br><strong>' . __(
                 'Paygate ID currently in use.',
-                self::ID
+                'paygate-payweb-for-woocommerce'
             ) . ' ( 10011072130 )</strong>';
         $form_fields[self::ENCRYPTION_KEY][self::DESCRIPTION]        .= ' <br><br><strong>' . __(
                 'Paygate Encryption Key currently in use.',
-                self::ID
+                'paygate-payweb-for-woocommerce'
             ) . ' ( secret )</strong>';
 
         return $form_fields;
@@ -45,7 +45,10 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
     {
         global $theorder;
         if ($theorder->get_payment_method() == self::ID) {
-            $actions['wc_custom_order_action_paygate'] = __('Query order status with Paygate', self::ID);
+            $actions['wc_custom_order_action_paygate'] = __(
+                'Query order status with Paygate',
+                'paygate-payweb-for-woocommerce'
+            );
         }
 
         return $actions;
@@ -87,6 +90,6 @@ class WC_Gateway_PayGate_Admin_Actions extends WC_Gateway_PayGate
                 $order->update_status(self::FAILED);
             }
         }
-        $order->add_order_note('Queried at ' . date('Y-m-d H:i') . '<br>Response: <br>' . $responseText);
+        $order->add_order_note('Queried at ' . gmdate('Y-m-d H:i') . '<br>Response: <br>' . $responseText);
     }
 }

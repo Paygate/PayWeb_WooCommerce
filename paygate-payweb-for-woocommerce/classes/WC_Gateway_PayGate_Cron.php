@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2024 Payfast (Pty) Ltd
+ * Copyright (c) 2025 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -55,9 +55,9 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
         $logging ? $logger->add('payweb-site-cron', 'Starting site cron job') : '';
 
         $orders = wc_get_orders([
-                                    'post_status'  => 'wc-pending',
-                                    'date_created' => '<' . $cutoff,
-                                ]);
+            'post_status'  => 'wc-pending',
+            'date_created' => '<' . $cutoff,
+        ]);
         $logging ? $logger->add('payweb-site-cron', 'Orders: ' . serialize($orders)) : '';
 
         foreach ($orders as $order) {
@@ -80,7 +80,7 @@ class WC_Gateway_PayGate_Cron extends WC_Gateway_PayGate
             $logging ? $logger->add('payweb-site-cron', 'Response Text: ' . $responseText) : '';
 
             $responseText = self::updateOrderStatus($transactionStatus, $order, $responseText);
-            $order->add_order_note('Queried by cron at ' . date('Y-m-d H:i') . '<br>Response: <br>' . $responseText);
+            $order->add_order_note('Queried by cron at ' . gmdate('Y-m-d H:i') . '<br>Response: <br>' . $responseText);
         }
     }
 

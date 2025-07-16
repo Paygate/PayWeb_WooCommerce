@@ -6,11 +6,11 @@
  * Description: Receive payments using the South African Paygate payments provider.
  * Author: Payfast (Pty) Ltd
  * Author URI: https://payfast.io/
- * Version: 1.5.0
- * Requires at least: 5.6
- * Tested up to: 6.7.0
- * WC tested up to: 9.4.1
- * WC requires at least: 6.0
+ * Version: 1.6.0
+ * Requires at least: 6.0
+ * Tested up to: 6.8
+ * WC tested up to: 9.9
+ * WC requires at least: 8.0
  * Requires PHP: 8.0
  *
  * Developer: App Inlet (Pty) Ltd
@@ -47,7 +47,7 @@ function custom_function_after_order_placed($order_id)
         'classic-checkout',
         plugins_url('assets-classic/js/classic-checkout.js', __FILE__),
         array(),
-        '1.5.0',
+        '1.6.0',
         true
     );
 }
@@ -103,7 +103,7 @@ function paygate_every_ten_minutes($schedules)
 {
     $schedules['paygate_every_ten_minutes'] = [
         'interval' => 600,
-        'display'  => __('Paygate Every 10 Minutes'),
+        'display'  => __('Paygate Every 10 Minutes', 'paygate-payweb-for-woocommerce'),
     ];
 
     return $schedules;

@@ -8,8 +8,8 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class PaymentRequest
 {
-    private string $encryptionKey;
-    private string $paygateId;
+    private string       $encryptionKey;
+    private string       $paygateId;
     private GuzzleClient $client;
 
     // PayGate URLs
@@ -89,7 +89,7 @@ HTML;
      */
     private function sendRequest(string $url, array $data)
     {
-        try {
+        try{
             $response = $this->client->post($url, [
                 'form_params' => $data,
                 'headers'     => [
@@ -98,9 +98,9 @@ HTML;
             ]);
 
             return $response->getBody()->getContents();
-        } catch (GuzzleException $e) {
+        } catch (GuzzleException $e){
             throw new Exception('Guzzle error during POST request: ' . $e->getMessage());
-        } catch (Exception $e) {
+        } catch (Exception $e){
             throw new Exception('An unexpected error occurred: ' . $e->getMessage());
         }
     }
