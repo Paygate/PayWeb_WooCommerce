@@ -43,7 +43,7 @@ Need help to configure this plugin? Feel free to connect with our Payfast Suppor
 4. WooCommerce Admin Paygate Additional Settings continued
 
 == Changelog ==
-= 1.6.0 - 2025-07-06 =
+= 1.6.0 - 2025-07-16 =
  * Resolved a fatal error that could occur when retrieving order notes for invalid or missing orders.
  * Updated to the Payfast Common Library v1.4.0 for improved payment processing.
  * Tested on WooCommerce 9.9 and WordPress 6.8.
