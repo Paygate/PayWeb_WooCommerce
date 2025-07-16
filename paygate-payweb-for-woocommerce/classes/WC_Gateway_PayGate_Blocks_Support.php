@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2024 Payfast (Pty) Ltd
+ * Copyright (c) 2025 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -12,7 +12,7 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 /**
  * Paygate payment method integration
  *
- * @since 1.5.0
+ * @since 1.6.0
  */
 final class WC_Gateway_PayGate_Blocks_Support extends AbstractPaymentMethodType
 {

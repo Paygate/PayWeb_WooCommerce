@@ -1,6 +1,6 @@
 {
   "require": {
-    "payfast/payfast-common": "^1.2",
+    "payfast/payfast-common": "1.4.0",
     "guzzlehttp/guzzle": "^7.9"
   }
 }

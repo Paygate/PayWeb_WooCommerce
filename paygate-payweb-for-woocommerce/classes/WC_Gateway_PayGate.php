@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2024 Payfast (Pty) Ltd
+ * Copyright (c) 2025 Payfast (Pty) Ltd
  *
  * Author: App Inlet (Pty) Ltd
  *
@@ -137,11 +137,11 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     const ORDER_META_REFERENCE_PLACEHOLDER    = 'Add order meta to the payment reference using a meta key (e.g. _billing_first_name)';
     const LOGGING                             = 'logging';
 
-    public $version = '1.5.0';
+    public $version = '1.6.0';
 
     public $id = 'paygate';
 
-    protected $merchant_id = self::TEST_PAYGATE_ID;
+    protected $merchant_id    = self::TEST_PAYGATE_ID;
     protected $encryption_key = self::TEST_ENCRYPTION_KEY;
     protected $payVault;
 
@@ -182,7 +182,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         self::RCS_METHOD           => self::RCS_DESCRIPTION
     ];
 
-    protected $pw3_card_methods = array();
+    protected $pw3_card_methods         = array();
     protected $pw3_card_methods_enabled = false;
 
     protected $order_meta_reference = '';
@@ -214,7 +214,14 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             $this->form_fields = WC_Gateway_PayGate_Admin_Actions::add_testmode_admin_settings_notice(
                 $this->form_fields
             );
-            $this->post        = $_POST;
+
+            if (isset($_POST['_nonce'], $_POST['action'])) {
+                $nonce  = sanitize_text_field(wp_unslash($_POST['_nonce']));
+                $action = sanitize_text_field(wp_unslash($_POST['action']));
+                if (wp_verify_nonce($nonce, $action)) {
+                    $this->post = array_map('wp_kses_post', wp_unslash($_POST));
+                }
+            }
         }
 
         $wcsession = WC()->session;
@@ -238,9 +245,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 if ($wcsession) {
                     $wcsession->set(
                         self::PAYGATE_PAYMENT_TOKEN,
-                        filter_var(
-                            $_POST[self::PAYGATE_PAYMENT_TOKEN],
-                            FILTER_SANITIZE_STRING
+                        htmlspecialchars(
+                            sanitize_text_field(wp_unslash($_POST[self::PAYGATE_PAYMENT_TOKEN])),
+                            ENT_QUOTES,
+                            'UTF-8'
                         )
                     );
                 }
@@ -254,9 +262,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
                 if ($wcsession) {
                     $wcsession->set(
                         self::SUB_PAYMENT_METHOD,
-                        filter_var(
-                            $_POST[self::SUB_PAYMENT_METHOD],
-                            FILTER_SANITIZE_STRING
+                        htmlspecialchars(
+                            sanitize_text_field(wp_unslash($_POST[self::SUB_PAYMENT_METHOD])),
+                            ENT_QUOTES,
+                            'UTF-8'
                         )
                     );
                 }
@@ -267,10 +276,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             }
         }
 
-        $this->method_title       = __('Paygate', self::ID);
+        $this->method_title       = __('Paygate', 'paygate-payweb-for-woocommerce');
         $this->method_description = __(
             'Paygate works by sending the customer to Paygate to complete their payment.',
-            self::ID
+            'paygate-payweb-for-woocommerce'
         );
         $this->icon               = $this->get_plugin_url() . '/assets/images/PayGate_logo.svg';
         $this->checkPaygatePlus();
@@ -311,11 +320,13 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
     public static function show_cart_messages($messages): void
     {
-        if (isset($_GET['order_id'])) {
-            $order_id      = filter_var($_GET['order_id'], FILTER_SANITIZE_NUMBER_INT);
-            $order         = wc_get_order($order_id);
-            $orderMessages = $order->get_meta('paygate_error');
-            $orderMessage  = is_array($orderMessages) ? $orderMessages[count($orderMessages) - 1] : $orderMessages;
+        if (isset($_GET['order_id']) && isset($_GET['_wpnonce']) &&
+            wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])))) {
+            $sanitizeOrderId = sanitize_text_field(wp_unslash($_GET['order_id']));
+            $order_id        = filter_var($sanitizeOrderId, FILTER_SANITIZE_NUMBER_INT);
+            $order           = wc_get_order($order_id);
+            $orderMessages   = $order->get_meta('paygate_error');
+            $orderMessage    = is_array($orderMessages) ? $orderMessages[count($orderMessages) - 1] : $orderMessages;
 
             echo '<h3 style="color: red;">' . esc_html($orderMessage) . '</h3>';
         }
@@ -399,7 +410,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
         if (!did_action('woocommerce_init')) {
             wc_doing_it_wrong(
                 __FUNCTION__,
-                __('This function should not be called before woocommerce_init.', 'woocommerce'),
+                __('This function should not be called before woocommerce_init.', 'paygate-payweb-for-woocommerce'),
                 '2.3'
             );
 
@@ -434,7 +445,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             return wc_kses_notice(ob_get_clean());
         }
 
-        echo wc_kses_notice(ob_get_clean());
+        echo wp_kses_post(wc_kses_notice(ob_get_clean()));
     }
 
     /**
@@ -478,10 +489,10 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
 
         if (is_ssl()) {
             return $this->plugin_url = str_replace(
-                                           'http://',
-                                           'https://',
-                                           WP_PLUGIN_URL
-                                       ) . "/" . plugin_basename(dirname(dirname(__FILE__)));
+                    'http://',
+                    'https://',
+                    WP_PLUGIN_URL
+                ) . "/" . plugin_basename(dirname(dirname(__FILE__)));
         } else {
             return $this->plugin_url = WP_PLUGIN_URL . "/" . plugin_basename(dirname(dirname(__FILE__)));
         }
@@ -496,204 +507,261 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     {
         $form_fields = array(
             'enabled'                   => array(
-                self::TITLE         => __('Enable/Disable', self::ID),
-                self::LABEL         => __('Enable Paygate Payment Gateway', self::ID),
+                self::TITLE         => __('Enable/Disable', 'paygate-payweb-for-woocommerce'),
+                self::LABEL         => __('Enable Paygate Payment Gateway', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __(
                     'This controls whether or not this gateway is enabled within WooCommerce.',
-                    self::ID
+                    'paygate-payweb-for-woocommerce'
                 ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::TITLE                 => array(
-                self::TITLE         => __('Title', self::ID),
+                self::TITLE         => __('Title', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'text',
-                self::DESCRIPTION   => __('This controls the title which the user sees during checkout.', self::ID),
+                self::DESCRIPTION   => __(
+                    'This controls the title which the user sees during checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => false,
-                self::DEFAULT_CONST => __('Paygate', self::ID),
+                self::DEFAULT_CONST => __('Paygate', 'paygate-payweb-for-woocommerce'),
             ),
             self::PAYGATE_ID_LOWER_CASE => array(
-                self::TITLE         => __('Paygate ID', self::ID),
+                self::TITLE         => __('Paygate ID', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'text',
-                self::DESCRIPTION   => __('This is the Paygate ID, received from Paygate.', self::ID),
+                self::DESCRIPTION   => __(
+                    'This is the Paygate ID, received from Paygate.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => '',
             ),
             self::ENCRYPTION_KEY        => array(
-                self::TITLE         => __('Encryption Key', self::ID),
+                self::TITLE         => __('Encryption Key', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'text',
-                self::DESCRIPTION   => __('This is the Encryption Key set in the Paygate Back Office.', self::ID),
+                self::DESCRIPTION   => __(
+                    'This is the Encryption Key set in the Paygate Back Office.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => '',
             ),
             self::TESTMODE              => array(
-                self::TITLE         => __('Test mode', self::ID),
+                self::TITLE         => __('Test mode', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __('Uses a Paygate test account. Request test cards from Paygate', self::ID),
+                self::DESCRIPTION   => __(
+                    'Uses a Paygate test account. Request test cards from Paygate',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'yes',
             ),
             self::LOGGING               => array(
-                self::TITLE         => __('Enable Logging', self::ID),
+                self::TITLE         => __('Enable Logging', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __('Enable WooCommerce Logging', self::ID),
+                self::DESCRIPTION   => __('Enable WooCommerce Logging', 'paygate-payweb-for-woocommerce'),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::DISABLENOTIFY         => array(
-                self::TITLE         => __('Disable IPN', self::ID),
+                self::TITLE         => __('Disable IPN', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __('Disable IPN notify method and use redirect method instead.', self::ID),
+                self::DESCRIPTION   => __(
+                    'Disable IPN notify method and use redirect method instead.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::ALTERNATECARTHANDLING => array(
-                self::TITLE         => __('Alternate Cart Handling', self::ID),
+                self::TITLE         => __('Alternate Cart Handling', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
                 self::DESCRIPTION   => __(
                     'Enable this if your cart is not cleared upon successful transaction.',
-                    self::ID
+                    'paygate-payweb-for-woocommerce'
                 ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::DESCRIPTION           => array(
-                self::TITLE         => __('Description', self::ID),
+                self::TITLE         => __('Description', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'textarea',
                 self::DESCRIPTION   => __(
                     'This controls the description which the user sees during checkout.',
-                    self::ID
+                    'paygate-payweb-for-woocommerce'
                 ),
                 self::DEFAULT_CONST => 'Pay via Paygate',
             ),
             'button_text'               => array(
-                self::TITLE         => __('Order Button Text', self::ID),
+                self::TITLE         => __('Order Button Text', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'text',
-                self::DESCRIPTION   => __('Changes the text that appears on the Place Order button', self::ID),
+                self::DESCRIPTION   => __(
+                    'Changes the text that appears on the Place Order button',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DEFAULT_CONST => 'Proceed to Paygate',
             ),
             'payvault'                  => array(
-                self::TITLE         => __(self::ENABLE . self::PAYVAULT, self::ID),
+                self::TITLE         => __('Enable PayVault', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
                 self::LABEL         => self::PAYVAULT . self::MUST_BE_ENABLED,
                 self::DESCRIPTION   => __(
                     'Provides the ability for users to store their credit card details.',
-                    self::ID
+                    'paygate-payweb-for-woocommerce'
                 ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             'paygateplus'               => array(
-                self::TITLE         => __('Use Paygate Plus logo', self::ID),
+                self::TITLE         => __('Use Paygate Plus logo', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
                 self::LABEL         => 'Enable the Paygate Plus logo',
                 self::DESCRIPTION   => __(
                     'Check to use the Paygate Plus logo rather than the default Paygate logo',
-                    self::ID
+                    'paygate-payweb-for-woocommerce'
                 ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::CREDIT_CARD           => array(
-                self::TITLE         => __(self::ENABLE . self::CREDIT_CARD_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable Card on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::CREDIT_CARD_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::BANK_TRANSFER         => array(
-                self::TITLE         => __(self::ENABLE . self::BANK_TRANSFER_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable SiD Secure EFT on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::BANK_TRANSFER_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::ZAPPER                => array(
-                self::TITLE         => __(self::ENABLE . self::ZAPPER_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable Zapper on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::ZAPPER_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::SNAPSCAN              => array(
-                self::TITLE         => __(self::ENABLE . self::SNAPSCAN_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable SnapScan on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::SNAPSCAN_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::PAYPAL                => array(
-                self::TITLE         => __(self::ENABLE . self::PAYPAL_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable PayPal on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::PAYPAL_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::MOBICRED              => array(
-                self::TITLE         => __(self::ENABLE . self::MOBICRED_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable Mobicred on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::MOBICRED_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::MOMOPAY               => array(
-                self::TITLE         => __(self::ENABLE . self::MOMOPAY_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable MoMoPay on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::MOMOPAY_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::SCANTOPAY             => array(
-                self::TITLE         => __(self::ENABLE . self::SCANTOPAY_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable MasterPass on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::SCANTOPAY_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::APPLE_PAY             => array(
-                self::TITLE         => __(self::ENABLE . self::APPLE_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable ApplePay on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::APPLE_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::SAMSUNG_PAY           => array(
-                self::TITLE         => __(self::ENABLE . self::SAMSUNG_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable Samsung Pay on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::SAMSUNG_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::RCS_METHOD            => array(
-                self::TITLE         => __(self::ENABLE . self::RCS_DESCRIPTION . self::ON_CHECKOUT, self::ID),
+                self::TITLE         => __('Enable RCS on Checkout', 'paygate-payweb-for-woocommerce'),
                 self::LABEL         => self::RCS_DESCRIPTION . self::MUST_BE_ENABLED,
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::CHECKOUT_PAYMENT_METHOD_DESCRIPTION),
+                self::DESCRIPTION   => __(
+                    'Enable quick select for this payment type on checkout.',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::PG_REFERENCE_TYPE     => array(
-                self::TITLE         => __(self::PG_REFERENCE_DESCRIPTION, self::ID),
+                self::TITLE         => __('Send order number only', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => self::CHECKBOX,
-                self::DESCRIPTION   => __(self::PG_REFERENCE_PLACEHOLDER, self::ID),
+                self::DESCRIPTION   => __(
+                    'Enable this to only send the order number on the payment reference sent to Paygate',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => 'no',
             ),
             self::ORDER_META_REFERENCE  => array(
-                self::TITLE         => __(self::ORDER_META_REFERENCE_DESCRIPTION, self::ID),
+                self::TITLE         => __('Order Meta Reference', 'paygate-payweb-for-woocommerce'),
                 self::TYPE          => 'text',
-                self::DESCRIPTION   => __(self::ORDER_META_REFERENCE_PLACEHOLDER),
+                self::DESCRIPTION   => __(
+                    'Add order meta to the payment reference using a meta key (e.g. _billing_first_name)',
+                    'paygate-payweb-for-woocommerce'
+                ),
                 self::DESC_TIP      => true,
                 self::DEFAULT_CONST => '',
             ),
@@ -710,7 +778,7 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     public function declined_msg($resultDescription)
     {
         echo '<p class="woocommerce-thankyou-order-failed">';
-        esc_html_e($resultDescription, 'woocommerce');
+        esc_html($resultDescription);
         echo '</p>';
     }
 
@@ -724,15 +792,18 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     {
         ?>
         <h3><?php
-            _e('Paygate Payment Gateway', self::ID); ?></h3>
+            esc_html_e('Paygate Payment Gateway', 'paygate-payweb-for-woocommerce'); ?></h3>
         <p><?php
-            printf(
-                __(
-                    'Paygate works by sending the user to %sPaygate%s to enter their payment information.',
-                    self::ID
-                ),
-                '<a href="https://payfast.io/">',
-                '</a>'
+            echo wp_kses_post(
+                sprintf(
+                // translators: %1$s and %2$s are HTML link tags used to wrap the word "Paygate".
+                    __(
+                        'Paygate works by sending the user to %1$sPaygate%2$s to enter their payment information.',
+                        'paygate-payweb-for-woocommerce'
+                    ),
+                    '<a href="https://payfast.io/">',
+                    '</a>'
+                )
             ); ?></p>
 
         <table class="form-table" aria-describedby="paygate">
@@ -755,6 +826,21 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
     public function payment_fields()
     {
         if ($this->payVault == 'yes' && !empty($_POST)) {
+            if (isset($_POST['post_data'])) {
+                $post_data = sanitize_text_field(wp_unslash($_POST['post_data']));
+                parse_str($post_data, $parsed_post_data);
+                if (isset($parsed_post_data['woocommerce-process-checkout-nonce']) && wp_verify_nonce(
+                        $parsed_post_data['woocommerce-process-checkout-nonce'],
+                        'woocommerce-process_checkout'
+                    )) {
+                    WC_Payment_Tokens::get_customer_tokens(get_current_user_id(), $this->id);
+                } else {
+                    wc_add_notice(
+                        __('Security check failed. Please try again.', 'paygate-payweb-for-woocommerce'),
+                        'error'
+                    );
+                }
+            }
             // Display stored credit card selection
             $tokens       = WC_Payment_Tokens::get_customer_tokens(get_current_user_id(), $this->id);
             $defaultToken = WC_Payment_Tokens::get_customer_default_token(get_current_user_id());
@@ -763,19 +849,17 @@ class WC_Gateway_PayGate extends WC_Payment_Gateway
             } else {
                 $token      = 'wc-' . esc_attr($this->id) . '-payment-token';
                 $new_method = 'wc-' . esc_attr($this->id) . '-new-payment-method';
-                echo <<<HTML
-<div name="$token" >
-                <input type="checkbox" name="$new_method" id="wc-paygate-new-payment-method" value="true"> Remember my credit card number
-</div>
-HTML;
+
+                echo '<div name="' . esc_attr($token) . '">';
+                echo '<input type="checkbox" name="' . esc_attr(
+                        $new_method
+                    ) . '" id="wc-paygate-new-payment-method" value="true"> Remember my credit card number';
+                echo '</div>';
             }
         } elseif ($this->payVault == 'yes' && empty($_POST)) {
             // Display message for adding cards via "My Account" screen
 
-            echo <<<HTML
-    <p>Cards cannot be added manually. Please select the "Use a new card" option in the checkout process when paying with Paygate</p>
-
-HTML;
+            echo '<p>Cards cannot be added manually. Please select the "Use a new card" option in the checkout process when paying with Paygate</p>';
         } else {
             if (isset($this->settings[self::DESCRIPTION]) && $this->settings[self::DESCRIPTION] != '') {
                 echo wp_kses_post(wpautop(wptexturize(esc_html($this->settings[self::DESCRIPTION]))));
@@ -786,12 +870,11 @@ HTML;
 
         // Add card field for enabled Paygate payment method
         if ($this->pw3_card_methods_enabled) {
-            $html = <<<HTML
-<table>
-<thead><tr><td></td><td></td></tr></thead>
-<tbody>
-<script>jQuery(".payment_method_paygate tr").click(function(){jQuery(this).find("input:first").attr("checked",!0)});</script>
-HTML;
+            $html = '<table>' .
+                '<thead><tr><td></td><td></td></tr></thead>' .
+                '<tbody>' .
+                '<script>jQuery(".payment_method_paygate tr").click(function(){jQuery(this).find("input:first").attr("checked",!0)});</script>';
+
             foreach ($this->pw3_card_methods as $pw_3_card_method) {
                 $html .= '<tr>';
                 if ($pw_3_card_method['value'] !== '') {
@@ -799,34 +882,34 @@ HTML;
                     $html                      .= '<td class="card_method" ><input type="radio" name="sub_payment_method" value="' . esc_attr(
                             $pw_3_card_method['value']
                         ) . '" >&nbsp;' . (esc_html(
-                                               $pw_3_card_method['description']
-                                           ) === "MasterPass" ? "ScanToPay" : esc_html(
+                            $pw_3_card_method['description']
+                        ) === "MasterPass" ? "ScanToPay" : esc_html(
                             $pw_3_card_method['description']
                         )) . '</td>';
                     $html                      .= '<td class="pay_method_image">';
-                    $html                      .= '<img src="' . esc_url(
+
+                    // Using plugin asset images, not media library attachments. This is safe and intentional.
+                    $html .= '<img src="' . esc_url(
                             WC_HTTPS::force_https_url($pw_3_card_method['image'])
                         ) . '" alt="' . esc_attr($pw_3_card_method['description']) . '">';
-                    $html                      .= isset($pw_3_card_method['image2']) ? '<img src="' . esc_url(
+                    $html .= isset($pw_3_card_method['image2']) ? '<img src="' . esc_url(
                             WC_HTTPS::force_https_url($pw_3_card_method['image2'])
                         ) . '" alt="' . esc_attr($pw_3_card_method['description']) . '2">' : '';
-                    $html                      .= '</td>';
+                    $html .= '</td>';
                 }
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
-            $html .= <<<HTML
-                <script>
+            $html .= '<script>
                 jQuery( document ).ready(function() {
                     if (window.ApplePaySession === undefined) {
-                        // Apple Pay is not available, so let's hide the specific input element
-                        var applePayElement = jQuery('input[value="CC-Applepay"]');
+                        // Apple Pay is not available, so let\'s hide the specific input element
+                        var applePayElement = jQuery(\'input[value="CC-Applepay"]\');
                         
                         applePayElement.parent().parent().remove();
                     }
                 });
-                </script>
-            HTML;
+                </script>';
 
             if ($quickSelectPaymentMethods) {
                 $allowed_tags = array_replace_recursive(
@@ -847,8 +930,20 @@ HTML;
 
     public function process_review_payment(): void
     {
+        if (isset($_REQUEST['_nonce'], $_REQUEST['action'])) {
+            $nonce  = sanitize_text_field(wp_unslash($_REQUEST['_nonce'])) ?? '';
+            $action = sanitize_text_field(wp_unslash($_REQUEST['action'])) ?? -1;
+            $verify = wp_verify_nonce($nonce, $action);
+            if ($verify) {
+                http_response_code(417);
+                exit();
+            }
+        }
+
         if (!empty($_POST[self::ORDER_ID])) {
-            $this->process_payment(filter_var($_POST[self::ORDER_ID], FILTER_SANITIZE_STRING));
+            $this->process_payment(
+                htmlspecialchars(sanitize_text_field(wp_unslash($_POST[self::ORDER_ID])), ENT_QUOTES, 'UTF-8')
+            );
         }
     }
 
@@ -859,6 +954,7 @@ HTML;
      */
     public function get_icon()
     {
+        // Using plugin asset images, not media library attachments. This is safe and intentional.
         $icon = '<img src="' . esc_url(WC_HTTPS::force_https_url($this->icon)) . '" alt="' . esc_attr(
                 $this->get_title()
             ) . '" style="width: auto !important; height: 25px !important; max-width: 100px; border: none !important;">';
@@ -895,6 +991,16 @@ HTML;
      */
     public function get_ajax_return_data_json($order_id)
     {
+        if (isset($_REQUEST['_nonce'], $_REQUEST['action'])) {
+            $nonce  = sanitize_text_field(wp_unslash($_REQUEST['_nonce'])) ?? '';
+            $action = sanitize_text_field(wp_unslash($_REQUEST['action'])) ?? -1;
+            $verify = wp_verify_nonce($nonce, $action);
+            if ($verify) {
+                http_response_code(417);
+                exit();
+            }
+        }
+
         if ($wcsession = WC()->session) {
             $wcsession->set('POST', $_POST);
         }
@@ -947,27 +1053,27 @@ HTML;
             'paygate-checkout-css',
             $this->get_plugin_url() . '/assets/wc-checkout-assets/css/paygate_checkout.css',
             array(),
-            WC_VERSION
+            function_exists('WC') && WC() ? WC()->version : null
         );
         wp_enqueue_script(
             self::PAYGATE_PAYMETHOD_JS,
             $this->get_plugin_url() . '/assets/wc-checkout-assets/js/paygate_paymethod.js',
             array(),
-            WC_VERSION,
+            function_exists('WC') && WC() ? WC()->version : null,
             true
         );
         wp_enqueue_script(
             self::PAYGATE_CHECKOUT_JS,
             $this->get_plugin_url() . '/assets/wc-checkout-assets/js/paygate_checkout.js',
             array(),
-            WC_VERSION,
+            function_exists('WC') && WC() ? WC()->version : null,
             true
         );
         wp_register_script(
             'classic-checkout',
             plugins_url('../assets-classic/js/classic-checkout.js', __FILE__),
             array('jquery'),
-            '1.5.0',
+            '1.6.0',
             true
         );
     }
@@ -1036,8 +1142,6 @@ HTML;
      */
     public function add_notice($message, $notice_type = 'success', $order_id = '')
     {
-        global $woocommerce;
-
         if ($order_id != '') {
             add_post_meta($order_id, 'paygate_error', $message);
         }
@@ -1063,7 +1167,7 @@ HTML;
             wc_add_notice($message, $notice_type);
         } else {
             // Use the old version
-            $woocommerce->add_error($message);
+            wc_add_notice($message, 'error');
         }
     }
 
@@ -1169,7 +1273,7 @@ HTML;
         }
 
         $this->pw3_card_methods = apply_filters('fnb_paygate_payweb_payment_types', $this->pw3_card_methods)
-                                  ?? $this->pw3_card_methods;
+            ?? $this->pw3_card_methods;
 
         $this->checkCardMethodsEnabled();
     }
@@ -1211,7 +1315,7 @@ HTML;
             )
         );
 
-        if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
+        if (version_compare(get_option('woocommerce_db_version'), '2.0.0', '>=')) {
             add_action(
                 'woocommerce_update_options_payment_gateways_' . $this->id,
                 array(
@@ -1245,31 +1349,33 @@ HTML;
     {
         global $wpdb;
 
-        $table = $wpdb->prefix . 'comments';
+        $cache_key   = 'order_notes_' . $order_id;
+        $order_notes = wp_cache_get($cache_key);
 
-        return $wpdb->get_results(
-            "
-        SELECT comment_content from $table
-        WHERE `comment_post_ID` = $order_id
-        AND `comment_type` = 'order_note'
-        "
-        );
+        if ($order_notes === false) {
+            $order_notes = array();
+            $notes = wc_get_order_notes(array('order_id' => $order_id));
+
+            foreach ($notes as $note) {
+                $order_notes[] = (object)array('comment_content' => $note->content);
+            }
+
+            wp_cache_set($cache_key, $order_notes);
+        }
+
+        return $order_notes;
     }
 
     protected function showTokens($defaultToken, $tokens)
     {
         $token = esc_attr("wc-{$this->id}-payment-token");
         if ($this->pw3_card_methods_enabled) {
-            echo <<<HTML
-                        <select name="$token" class="start_hidden">
-HTML;
+            echo '<select name="' . esc_attr($token) . '" class="start_hidden">';
         } else {
-            echo <<<HTML
-                        <select name="$token">
-HTML;
+            echo '<select name="' . esc_attr($token) . '">';
         }
 
-        $now = new DateTime(date('Y-m'));
+        $now = new DateTime(gmdate('Y-m'));
         foreach ($tokens as $token) {
             $expires = new DateTime($token->get_expiry_year() . '-' . $token->get_expiry_month());
             $valid   = $expires >= $now;
@@ -1287,16 +1393,15 @@ HTML;
                 $option_value = esc_attr($token->get_token());
                 $card_type    = esc_html($cardType);
                 $last4        = esc_html($token->get_last4());
-                echo <<<HTML
-                     <option value="{$option_value}" {$selected}>Use {$card_type} ending in {$last4}</option> }
-HTML;
+                echo '<option value="' . esc_attr($option_value) . '" ' . esc_attr($selected) . '>Use ' . esc_attr(
+                        $card_type
+                    ) . ' ending in ' . esc_attr($last4) . '</option>';
             }
         }
 
-        echo <<<HTML
-                    <option value="new">Use a new card</option>
-                    <option value="no">Use a new card and don't save</option>
-                </select>
-HTML;
+        echo '<option value="new">Use a new card</option>';
+        echo '<option value="no">Use a new card and don\'t save</option>';
+        echo '<option value="no">Use a new card and don\'t save</option>';
+        echo '</select>';
     }
 }

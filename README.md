@@ -1,6 +1,6 @@
 # PayWeb_WooCommerce
 
-## PayGate WooCommerce plugin v1.5.0 for WooCommerce v9.4.1
+## PayGate WooCommerce plugin v1.6.0 for WooCommerce v9.9
 
 This is the Paygate plugin for WooCommerce. Please feel free to contact the Payfast support team at
 support@payfast.io should you require any assistance.

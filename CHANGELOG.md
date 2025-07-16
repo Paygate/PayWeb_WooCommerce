@@ -1,5 +1,23 @@
 # Changelog
 
+## [[1.6.0]](https://github.com/Paygate/PayWeb_WooCommerce/releases/tag/v1.6.0)
+
+### Fixed
+
+- Resolved a fatal error that could occur when retrieving order notes for invalid or missing orders.
+
+### Added
+
+- Updated to the Payfast Common Library v1.4.0 for improved payment processing.
+
+### Tested
+
+- Tested on WooCommerce 9.9 and WordPress 6.8.
+
+### Updated
+
+- Code quality and security fixes.
+
 ## [[1.5.0]](https://github.com/Paygate/PayWeb_WooCommerce/releases/tag/v1.5.0)
 
 ### Added

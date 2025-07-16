@@ -336,24 +336,24 @@
         },
         {
             "name": "payfast/payfast-common",
-            "version": "v1.2.0",
-            "version_normalized": "1.2.0.0",
+            "version": "v1.4.0",
+            "version_normalized": "1.4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Payfast/payfast-common.git",
-                "reference": "8d2f24de1afc1aa6750b9110cce273f20a58ab5e"
+                "reference": "775d9ca164dee271e4465c471e7e380fd70a5ba1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Payfast/payfast-common/zipball/8d2f24de1afc1aa6750b9110cce273f20a58ab5e",
-                "reference": "8d2f24de1afc1aa6750b9110cce273f20a58ab5e",
+                "url": "https://api.github.com/repos/Payfast/payfast-common/zipball/775d9ca164dee271e4465c471e7e380fd70a5ba1",
+                "reference": "775d9ca164dee271e4465c471e7e380fd70a5ba1",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.0",
                 "php": "^8.1"
             },
-            "time": "2024-11-12T05:49:16+00:00",
+            "time": "2025-04-04T22:46:44+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -375,7 +375,7 @@
             "homepage": "https://github.com/PayFast/payfast-common",
             "support": {
                 "issues": "https://github.com/Payfast/payfast-common/issues",
-                "source": "https://github.com/Payfast/payfast-common/tree/v1.2.0"
+                "source": "https://github.com/Payfast/payfast-common/tree/v1.4.0"
             },
             "install-path": "../payfast/payfast-common"
         },
